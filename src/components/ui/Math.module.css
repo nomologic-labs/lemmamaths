@@ -1,0 +1,55 @@
+/*
+ * KaTeX ships its own stylesheet; these rules only adjust how its output sits in Lemma's
+ * type. KaTeX renders at the inherited font size, so the sizes below are the article's
+ * decision about how prominent mathematics should be, not KaTeX's.
+ */
+
+.inline :global(.katex) {
+  font-size: 1.06em;
+}
+
+.display {
+  margin-block: var(--space-6);
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Long equations scroll rather than overflowing the column. The padding keeps the
+     scrollbar and the descenders of tall expressions from touching. */
+  padding-block: var(--space-1) var(--space-2);
+  padding-inline: var(--space-1);
+  scrollbar-width: thin;
+}
+
+.display :global(.katex-display) {
+  margin: 0;
+}
+
+.display :global(.katex) {
+  font-size: 1.14em;
+}
+
+.tagged {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.tagged .displayBody {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tag {
+  flex: none;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+@media (max-width: 34rem) {
+  .display :global(.katex) {
+    font-size: 1.02em;
+  }
+}

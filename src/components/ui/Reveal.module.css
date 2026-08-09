@@ -1,0 +1,36 @@
+/*
+ * Scroll-triggered reveal. Only opacity and transform are animated — both are composited
+ * by the GPU, so a page of these costs no layout work on a phone.
+ *
+ * The hidden state is scoped to [data-motion="on"], which the blocking script in
+ * src/lib/theme/theme-script.tsx sets only when scripting is available and the reader
+ * has not asked for reduced motion. Without that flag the rules below never apply and
+ * every section renders in its final state, so content is never gated on JavaScript.
+ */
+.reveal {
+  transition:
+    opacity var(--duration-reveal) var(--ease-out),
+    transform var(--duration-reveal) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+:global([data-motion="on"]) .reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-shift, 1.25rem));
+  will-change: opacity, transform;
+}
+
+:global([data-motion="on"]) .shown {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  :global([data-motion="on"]) .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

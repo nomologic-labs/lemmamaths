@@ -1,0 +1,25 @@
+/* Inline code inside prose: marked by a tint and a hairline rather than a filled box,
+   so it does not punch a hole in the paragraph the way a solid chip would. */
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  color: var(--text-primary);
+  background: var(--accent-wash);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-xs);
+  padding: 0.08em 0.32em;
+  word-break: break-word;
+}
+
+.link {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.18em;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--accent);
+}

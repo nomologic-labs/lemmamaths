@@ -1,0 +1,49 @@
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-page);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.option:hover {
+  color: var(--text-primary);
+  background: var(--accent-wash);
+}
+
+.optionActive,
+.optionActive:hover {
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+}
+
+.resolved {
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  color: var(--text-faint);
+  padding-inline: var(--space-1);
+}

@@ -1,0 +1,48 @@
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-primary);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+.tagline {
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.sm .name {
+  font-size: 1.35rem;
+}
+
+.md .name {
+  font-size: 1.7rem;
+}
+
+.lg .name {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: -0.025em;
+}
+
+.lg .tagline {
+  font-size: var(--text-xs);
+}

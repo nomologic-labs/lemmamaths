@@ -1,0 +1,203 @@
+---
+alwaysApply: true
+---
+Lemma Design System
+1. Visual Character
+
+Lemma should feel:
+
+scholarly
+mathematical
+elegant
+warm
+editorial
+contemporary
+restrained
+
+It should NOT feel:
+
+like a generic SaaS dashboard
+like a social-media platform
+like a university administrative website
+like a medieval/fantasy website
+excessively futuristic
+excessively minimalist to the point of sterility
+
+The leather theme is primarily a colour and material reference, not an instruction to use literal leather textures.
+
+2. Colour
+Light Mode
+Parchment       #F5EDE0
+Dark Chocolate  #2B1509
+Brown           #4A2410
+Saddle          #8C4A1E
+Brass           #B8894A
+Tan             #C9A876
+
+Use parchment as the dominant background.
+
+Use dark chocolate for primary text.
+
+Use saddle and brass selectively for interactive elements and emphasis.
+
+Do not turn the entire interface brown.
+
+Whitespace and parchment should dominate the visual composition.
+
+3. Dark Mode
+
+Dark mode should feel like the same physical material under different lighting.
+
+Prefer:
+
+very dark brown/chocolate background
+parchment primary text
+tan secondary text
+brass/saddle accents
+
+Avoid pure black unless required for a specific component.
+
+Avoid unrelated cool colour palettes.
+
+4. Typography
+
+Use an editorial serif typeface for:
+
+Lemma wordmark where appropriate
+large headings
+article titles
+major editorial elements
+
+Use a highly readable typeface for long-form article text.
+
+Use a clean sans-serif for:
+
+navigation
+filters
+buttons
+metadata
+interface controls
+
+Mathematical typography must be given sufficient size, spacing, and contrast.
+
+5. Homepage
+
+The first viewport should be visually simple.
+
+The visitor should primarily see:
+
+logo/name
+motto
+atmospheric background
+
+The visual experience should gradually reveal the publication.
+
+Use subtle transitions such as:
+
+opacity
+translation
+scale
+background movement
+gradual emergence of content
+
+Do not use excessive motion.
+
+Respect:
+
+prefers-reduced-motion
+
+6. Navigation Drawer
+
+The drawer should feel like part of the publication rather than a generic application sidebar.
+
+It should contain:
+
+Lemma logo
+navigation
+search
+author dashboard
+appearance control
+
+The drawer must work equally well on desktop and mobile.
+
+On mobile, it may become a near-full-screen navigation surface.
+
+7. Cards
+
+Article cards should be editorial rather than generic rounded SaaS cards.
+
+Avoid excessive:
+
+rounded corners
+shadows
+gradients
+badges
+decorative borders
+
+Cards should prioritize:
+
+title
+topic
+author
+date
+short description
+peer-review status where relevant
+8. Article Pages
+
+Article pages should be calmer than the homepage.
+
+Prioritize:
+
+readable line length
+generous whitespace
+clear hierarchy
+excellent equation rendering
+high-quality image presentation
+clear captions
+accessible code blocks
+
+Do not use distracting animation while reading.
+
+9. Accessibility
+
+Maintain:
+
+sufficient colour contrast
+keyboard navigation
+visible focus states
+semantic headings
+accessible buttons
+alt text for images
+reduced-motion support
+responsive typography
+
+Aesthetic considerations must not override accessibility.
+
+10. Responsive Design
+
+Do not simply shrink desktop layouts.
+
+Design explicitly for:
+
+desktop
+laptop
+tablet
+mobile
+
+Article pages, search filters, navigation, code blocks, equations, and images must each be tested at small widths.
+
+11. Logo
+
+Use the supplied logo reference as the visual source of truth.
+
+The logo should be implemented as a reusable component.
+
+Preferred location:
+
+src/components/brand/LemmaLogo.tsx
+
+Do not duplicate raw SVG markup throughout the application.
+
+If the logo can safely support light/dark adaptation without changing its identity, use the design tokens.
+
+Otherwise preserve its original colours.

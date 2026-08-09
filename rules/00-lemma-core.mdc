@@ -1,0 +1,287 @@
+---
+alwaysApply: true
+---
+# `.cursor/rules/00-lemma-core.mdc`
+
+---
+
+description: Immutable core requirements and product principles for Lemma
+alwaysApply: true
+-----------------
+
+# Lemma Core
+
+## Status
+
+This document contains the fundamental requirements of the Lemma project.
+
+These requirements are authoritative.
+
+Do not modify, delete, weaken, reinterpret, or replace these requirements unless the user explicitly requests a change to the project requirements.
+
+If an implementation request conflicts with these requirements:
+
+1. Identify the conflict.
+2. Explain it briefly.
+3. Ask the user before changing a core requirement.
+
+Do not silently change product requirements to make implementation easier.
+
+---
+
+# 1. What Lemma Is
+
+Lemma is a student-run mathematical publication and archive.
+
+It publishes student-created mathematical work including:
+
+* mathematical articles
+* investigations
+* essays
+* problems
+* reports
+* computer-science-related mathematical work
+
+Lemma should feel like a modern mathematical journal and mathematical library, not a generic blog or social network.
+
+---
+
+# 2. Primary Goals
+
+The website must prioritize:
+
+1. Excellent article discovery
+2. Excellent mathematical readability
+3. Simple authoring
+4. Clear peer-review workflow
+5. Elegant visual identity
+6. Long-term maintainability
+7. Scalability to at least 100 published articles
+
+The website must remain intuitive as the archive grows.
+
+Never design a feature assuming Lemma will only contain a small number of articles.
+
+---
+
+# 3. Reader Experience
+
+Readers must be able to:
+
+* visit the website without an account
+* understand what Lemma is quickly
+* browse articles
+* search articles
+* filter articles
+* browse topics
+* browse authors
+* read mathematical content comfortably
+* view images and graphs
+* read source code
+* copy code
+* discover related articles
+
+Authentication must never be required simply to read public content.
+
+---
+
+# 4. Author Experience
+
+Authors must eventually be able to:
+
+* authenticate
+* create drafts
+* edit drafts
+* write mathematical content
+* insert equations
+* insert PNG/JPEG images
+* insert PNG/JPEG graphs
+* insert syntax-highlighted code
+* preview articles
+* autosave work
+* submit articles
+* receive revision requests
+* resubmit articles
+* view publication status
+
+Authoring should not require the author to understand web development.
+
+---
+
+# 5. Mathematical Content
+
+Mathematics is a first-class part of Lemma.
+
+The platform must support:
+
+* KaTeX
+* inline equations
+* display equations
+* definitions
+* theorems
+* lemmas
+* propositions
+* corollaries
+* proofs
+* examples
+* remarks
+* exercises
+
+Mathematical notation must be rendered accurately and readably.
+
+---
+
+# 6. Topics
+
+The primary topics are:
+
+* Algebra
+* Calculus
+* Linear Algebra
+* Topology
+* Arithmetic
+* Statistics & Probability
+* Number Theory
+* Computer Science
+* Numerical Analysis
+
+Do not add new top-level mathematical categories without explicit product/design discussion.
+
+Specific concepts should generally be represented as tags rather than additional top-level categories.
+
+---
+
+# 7. Publication Workflow
+
+The intended article workflow is:
+
+DRAFT
+→ SUBMITTED
+→ UNDER REVIEW
+→ REVISION REQUESTED
+→ RESUBMITTED
+→ APPROVED
+→ PUBLISHED
+
+Authors cannot automatically publish articles.
+
+---
+
+# 8. Visual Identity
+
+Lemma uses a parchment/leather-inspired visual identity.
+
+Light mode:
+
+* Background: #F5EDE0
+* Primary text: #2B1509
+* Secondary text: #4A2410
+* Primary accent: #8C4A1E
+* Highlight: #B8894A
+* Muted/border: #C9A876
+
+Dark mode must remain within the same warm brown/parchment visual family.
+
+Do not introduce an unrelated blue, purple, or indigo brand palette.
+
+---
+
+# 9. Homepage
+
+The initial homepage viewport must be minimal and atmospheric.
+
+It should primarily communicate:
+
+* Lemma
+* the square Lemma logo
+* the motto/tagline
+* a distinctive mathematical background
+* a subtle indication that the user can scroll
+
+The homepage should then transition into:
+
+1. Recently Published
+2. Featured
+3. Explore Mathematics
+4. Browse All Articles
+
+The homepage may use scroll-driven animation, but animation must remain restrained and must never interfere with navigation or readability.
+
+---
+
+# 10. Navigation
+
+The primary navigation is a drawer/sidebar.
+
+It should provide access to:
+
+* Home
+* Articles
+* Topics
+* Authors
+* About
+* Search
+* Author Dashboard
+* Appearance
+
+The square Lemma logo should appear in the navigation drawer.
+
+---
+
+# 11. Search and Discovery
+
+Article discovery is a core feature.
+
+The system must support searching and filtering by appropriate metadata including:
+
+* title
+* author
+* topic
+* tags
+* format
+* year
+* peer-review status
+
+Search and filtering must remain usable with 100+ articles.
+
+Do not create a visually impressive but cumbersome archive.
+
+---
+
+# 12. Logo
+
+The supplied logo reference image is the authoritative visual reference:
+
+`/public/brand/lemma-logo-reference.png`
+
+When implementing the logo, preserve its identity.
+
+Prefer a scalable native SVG/HTML/CSS implementation when practical.
+
+Do not redesign or reinterpret the logo without explicit instruction.
+
+---
+
+# 13. Deployment
+
+The website will be deployed using Vercel.
+
+The architecture must remain compatible with Vercel.
+
+Vercel should be treated as the deployment/platform layer rather than assuming it is itself the database, authentication provider, or object-storage system.
+
+---
+
+# 14. Product Philosophy
+
+When choosing between two implementations, prefer the one that makes Lemma:
+
+* easier to understand
+* easier to navigate
+* easier to write for
+* easier to maintain
+* easier to scale
+
+Do not add complexity merely because a feature is technically interesting.
+
+The reader and author experience are more important than maximizing the number of features.

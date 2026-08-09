@@ -1,0 +1,23 @@
+.layout {
+  padding-bottom: var(--space-9);
+}
+
+/*
+ * One column until there is room for a filter rail beside the results; below that the
+ * same panel is disclosed by the Filters button instead. The grid's items come from
+ * ArchiveFilters (its form is `display: contents`) plus the results column here, so
+ * auto-placement does the rest: full-width bar, then rail and results side by side.
+ */
+@media (min-width: 64rem) {
+  .layout {
+    display: grid;
+    grid-template-columns: 14.5rem minmax(0, 1fr);
+    column-gap: var(--space-8);
+    align-items: start;
+  }
+
+  .results {
+    grid-column: 2;
+    min-width: 0;
+  }
+}

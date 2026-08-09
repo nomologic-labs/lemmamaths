@@ -1,0 +1,123 @@
+.header {
+  padding-block: var(--space-7) var(--space-6);
+}
+
+@media (min-width: 48rem) {
+  .header {
+    padding-block: var(--space-8) var(--space-7);
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 var(--space-4);
+}
+
+.breadcrumb a {
+  color: var(--accent);
+}
+
+.breadcrumb a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.separator {
+  color: var(--rule-strong);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.standfirst {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-style: italic;
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+  margin: var(--space-4) 0 0;
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+
+/* ---- Byline ---- */
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--rule-hairline);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  color: var(--text-faint);
+}
+
+.authors {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.authors a {
+  color: inherit;
+}
+
+.authors a:hover {
+  color: var(--accent);
+}
+
+.dates {
+  font-variant-numeric: tabular-nums;
+}
+
+.updated {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* ---- Tags ---- */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.tag {
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding: 0.15rem var(--space-3);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-pill);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.tag:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}

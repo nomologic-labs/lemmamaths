@@ -1,0 +1,201 @@
+---
+alwaysApply: true
+---
+# `.cursor/rules/40-documentation.mdc`
+
+---
+
+description: Mandatory documentation requirements for the Lemma project
+alwaysApply: true
+-----------------
+
+# Lemma Documentation Standard
+
+## 1. Documentation Is Part of the Implementation
+
+Documentation is a required part of developing Lemma.
+
+A feature is not considered fully implemented until its relevant documentation has been updated.
+
+Do not treat documentation as optional, secondary, or something to write only at the end of the project.
+
+---
+
+# 2. The Lemma Technical Manual
+
+The project must maintain a continuously updated technical manual in:
+
+`/docs/manual/`
+
+The manual describes the **actual implemented system**, not merely the intended design.
+
+The manual must remain understandable to a developer who did not build the relevant feature.
+
+---
+
+# 3. When Documentation Must Be Updated
+
+Update the manual whenever a change:
+
+* introduces a new system
+* introduces a new component with significant behaviour
+* changes application architecture
+* changes data structures
+* changes authentication or authorization
+* changes article creation/editing
+* changes article publishing
+* changes search
+* changes media handling
+* changes deployment
+* introduces an important dependency
+* introduces a non-obvious technical solution
+* changes an existing system's behaviour
+
+Small cosmetic changes do not require extensive documentation.
+
+Use judgment.
+
+---
+
+# 4. Documentation Must Describe Reality
+
+The manual must describe what is actually implemented.
+
+Do not document:
+
+* planned features as implemented
+* hypothetical architecture
+* obsolete systems
+* functionality that does not exist
+
+If a feature is partially implemented, clearly identify what currently works and what remains unfinished.
+
+---
+
+# 5. Required Information
+
+When documenting a significant system, include where appropriate:
+
+* purpose
+* architecture
+* important files
+* important components
+* data flow
+* dependencies
+* configuration
+* environment variables
+* APIs
+* database interactions
+* authentication requirements
+* user permissions
+* common failure cases
+* maintenance instructions
+* testing instructions
+
+Do not document trivial implementation details that would create unnecessary noise.
+
+---
+
+# 6. Explain Why, Not Only What
+
+Documentation should explain important design decisions.
+
+For example, do not merely write:
+
+> Search uses server-side filtering.
+
+Instead explain:
+
+> Search uses server-side filtering because the article archive is expected to exceed 100 articles and the architecture should remain suitable for future growth.
+
+Technical documentation should provide enough context for another developer to make informed changes.
+
+---
+
+# 7. Keep Documentation Close to the Code
+
+When useful, documentation should identify relevant source files.
+
+For example:
+
+```text
+Article rendering:
+src/components/articles/ArticleBody.tsx
+src/lib/articles/render.ts
+```
+
+This allows developers to move quickly from the manual to the implementation.
+
+Do not rely on undocumented assumptions about where functionality lives.
+
+---
+
+# 8. Documentation Structure
+
+The manual should generally contain:
+
+* `README.md` — overview and entry point
+* `architecture.md` — high-level architecture
+* `frontend.md` — frontend structure
+* `backend.md` — backend architecture
+* `content-system.md` — article/content architecture
+* `article-editor.md` — authoring system
+* `authentication.md` — authentication and authorization
+* `search.md` — search and discovery
+* `media.md` — image and graph handling
+* `review-system.md` — peer-review workflow
+* `deployment.md` — deployment and production infrastructure
+* `troubleshooting.md` — common problems and solutions
+
+Create additional manual pages when a system becomes sufficiently complex.
+
+---
+
+# 9. Documentation After Implementation
+
+After completing a significant feature:
+
+1. Verify that the implementation works.
+2. Identify what changed architecturally.
+3. Update the relevant manual page.
+4. Add important configuration or maintenance information.
+5. Check that existing documentation is not now inaccurate.
+
+Do not wait until the end of the project to reconstruct documentation from memory.
+
+---
+
+# 10. Documentation Changes Must Be Intentional
+
+Do not rewrite large sections of the manual unnecessarily.
+
+Prefer small, targeted updates that accurately reflect the current implementation.
+
+Preserve useful historical context when it helps explain why the system works the way it does.
+
+---
+
+# 11. No Documentation Hallucinations
+
+Never claim that a feature, API, dependency, configuration option, database table, endpoint, or workflow exists without verifying it in the repository.
+
+If uncertain, inspect the implementation first.
+
+Documentation must be based on the actual codebase.
+
+---
+
+# 12. AI Handoff Requirement
+
+The manual should be sufficient for a new AI coding agent to understand the existing system without relying on previous chat conversations.
+
+When possible, an AI agent should be able to:
+
+1. Read `.cursor/rules/`
+2. Read relevant `docs/decisions/`
+3. Read `docs/manual/`
+4. Inspect the relevant source files
+5. Understand the existing implementation
+6. Make changes without reconstructing the project history from previous conversations
+
+This is a core maintainability requirement of Lemma.

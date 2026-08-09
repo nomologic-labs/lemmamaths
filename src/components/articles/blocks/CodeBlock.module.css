@@ -1,0 +1,113 @@
+/*
+ * Code blocks break the measure deliberately: they are wider than the prose column and
+ * sit on a sunken surface, so a reader scanning the article can see at a glance where
+ * the prose stops and the listing starts.
+ */
+.block {
+  margin-block: var(--space-6);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--rule-hairline);
+  background: var(--surface-sunken);
+}
+
+.language {
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.25rem var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.copy:hover {
+  color: var(--text-primary);
+  border-color: var(--rule-soft);
+}
+
+.copy[data-state="copied"] {
+  color: var(--accent);
+}
+
+.copy[data-state="failed"] {
+  color: var(--text-muted);
+}
+
+/* The listing scrolls sideways rather than wrapping: a wrapped line of code changes
+   what the code appears to say, which a long article cannot afford. */
+.scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.scroll :global(pre.shiki) {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  background: transparent !important;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  tab-size: 2;
+  /* JetBrains Mono ligates != into ≠, which silently rewrites what the listing says. */
+  font-variant-ligatures: none;
+}
+
+.scroll :global(pre.shiki code) {
+  display: block;
+  width: fit-content;
+  min-width: 100%;
+  font-family: inherit;
+}
+
+/*
+ * Shiki emits both themes at once as custom properties, so switching appearance is a
+ * change of which property is read — no re-highlighting, and no flash of the wrong
+ * colours on a page full of code.
+ */
+.scroll :global(pre.shiki span) {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+}
+
+:global([data-theme="dark"]) .scroll :global(pre.shiki span) {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+}
+
+.caption {
+  padding: var(--space-3) var(--space-5) var(--space-4);
+  border-top: 1px solid var(--rule-hairline);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+  margin: 0;
+}

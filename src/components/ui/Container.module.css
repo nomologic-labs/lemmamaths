@@ -1,0 +1,16 @@
+.container {
+  width: min(100% - 2 * clamp(1.125rem, 5vw, 3rem), var(--container-width, var(--width-page)));
+  margin-inline: auto;
+}
+
+.wide {
+  --container-width: var(--width-page);
+}
+
+.narrow {
+  --container-width: var(--width-narrow);
+}
+
+.prose {
+  --container-width: 46rem;
+}

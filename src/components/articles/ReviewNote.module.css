@@ -1,0 +1,56 @@
+/*
+ * The review record, set as a colophon at the foot of the article. Lemma's whole claim
+ * is that student work has been checked, so this says who checked it and when rather
+ * than leaving a badge to imply it.
+ */
+.note {
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-sm);
+  max-width: var(--measure-prose);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.referees {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+
+.referees a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-soft);
+  text-underline-offset: 0.2em;
+}
+
+.referees a:hover {
+  color: var(--accent);
+}

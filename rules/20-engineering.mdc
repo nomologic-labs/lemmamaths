@@ -1,0 +1,163 @@
+---
+alwaysApply: true
+---
+Lemma Engineering Rules
+1. Technology
+
+Use:
+
+Next.js
+React
+TypeScript
+Vercel-compatible server architecture
+KaTeX
+appropriate syntax highlighting
+modern CSS architecture or Tailwind where appropriate
+
+Do not introduce dependencies without a clear reason.
+
+2. Architecture
+
+Separate concerns between:
+
+UI
+content rendering
+article data
+authentication
+authorization
+search
+media/assets
+review workflow
+publishing
+
+Do not create giant components containing unrelated functionality.
+
+Prefer reusable components and strongly typed interfaces.
+
+3. Vercel
+
+The production application will be deployed on Vercel.
+
+Do not assume Vercel itself provides every backend capability.
+
+Database, authentication, and object storage should be treated as separate infrastructure decisions unless a Vercel-native solution is explicitly selected.
+
+Do not hard-code a provider before it has been chosen.
+
+4. Development Process
+
+Before making substantial changes:
+
+Inspect the existing repository.
+Understand the current architecture.
+Check existing components and utilities.
+Check the relevant project rules.
+Check relevant decision records.
+Identify potential conflicts.
+Explain major architectural changes before implementing them.
+5. Incremental Development
+
+Implement features in small coherent phases.
+
+Do not build the entire application in a single pass.
+
+Do not rewrite unrelated working code.
+
+Do not replace an existing architecture simply because another approach is personally preferred.
+
+6. Type Safety
+
+Prefer explicit TypeScript types.
+
+Avoid unnecessary:
+
+any
+
+Do not suppress TypeScript errors merely to make the build pass.
+
+Fix the underlying problem.
+
+7. Security
+
+Treat authentication, authorization, file uploads, article publishing, and user-generated content as security-sensitive.
+
+Never trust client-side authorization.
+
+Never expose secrets to client-side code.
+
+Never execute arbitrary user-provided code on the production application without a deliberately designed sandbox.
+
+8. Media
+
+V1 article graphs are uploaded images.
+
+Supported graph/image formats:
+
+PNG
+JPEG/JPG
+
+Do not implement arbitrary Python execution for graph generation unless explicitly requested as a later feature.
+
+9. Code Blocks
+
+Use a proper syntax-highlighting solution.
+
+Code blocks should support:
+
+language labels
+syntax highlighting
+copy button
+responsive horizontal scrolling
+
+Do not store syntax-highlighted HTML as article content if it can be generated at render time.
+
+10. Testing
+
+After meaningful changes:
+
+run the appropriate type checks
+run linting
+run tests where available
+verify the affected pages
+inspect responsive behaviour when UI changes are made
+
+Do not declare a feature complete solely because the code compiles.
+
+11. AI Model Responsibilities
+
+Use the strongest reasoning model available for:
+
+architecture
+security-sensitive decisions
+database design
+search architecture
+difficult debugging
+major refactoring
+
+Use a strong coding model for:
+
+normal implementation
+React components
+styling
+editor features
+routine backend work
+
+Use fast models for:
+
+small mechanical edits
+simple refactors
+repetitive changes
+straightforward documentation
+
+Do not repeatedly redesign the architecture using different models.
+
+12. Change Discipline
+
+Before modifying an important architectural decision:
+
+inspect the relevant decision record
+determine whether it is still valid
+explain why the change is necessary
+update the decision record if the decision genuinely changes
+
+Do not silently create architectural drift.

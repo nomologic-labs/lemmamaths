@@ -1,0 +1,177 @@
+---
+alwaysApply: true
+---
+
+Lemma Content and Editor Rules
+1. Article Formats
+
+Supported formats:
+
+Article
+Investigation
+Problem
+Essay
+Report
+
+The format is metadata and should not determine the fundamental article rendering system.
+
+2. Article Metadata
+
+An article should be able to contain:
+
+title
+slug
+author
+publication date
+updated date
+description/excerpt
+topics
+tags
+format
+reading time
+peer-review status
+article content
+references
+images/assets
+3. Topics
+
+Primary topics:
+
+Algebra
+Calculus
+Linear Algebra
+Topology
+Arithmetic
+Statistics & Probability
+Number Theory
+Computer Science
+Numerical Analysis
+
+Use tags for more specific concepts.
+
+4. Mathematical Rendering
+
+Use KaTeX.
+
+Support:
+
+inline equations
+block equations
+
+The editor should provide a live preview when practical.
+
+Mathematical rendering must be deterministic and safe.
+
+5. Mathematical Blocks
+
+Support specialized content blocks such as:
+
+Definition
+Theorem
+Lemma
+Proposition
+Corollary
+Proof
+Example
+Remark
+Exercise
+
+These should have consistent styling.
+
+6. Images and Graphs
+
+V1 supports:
+
+PNG
+JPEG/JPG
+
+Authors may generate graphs using Python locally and upload the resulting image.
+
+The editor should allow:
+
+image upload
+preview
+caption
+alt text
+appropriate sizing/alignment
+
+Do not implement server-side Python execution for graph generation in V1.
+
+7. Code
+
+Computer-science articles may contain source code.
+
+Code blocks should support:
+
+syntax highlighting
+language selection
+copy-to-clipboard
+responsive scrolling
+
+Common languages should be supported first.
+
+8. Editor
+
+The browser-based editor should eventually provide:
+
+Editor mode
+Split mode
+Preview mode
+
+Insertion options should include:
+
+text
+headings
+equations
+images
+graphs
+code
+mathematical blocks
+tables
+references
+
+The author should not need to understand web development.
+
+9. Drafts
+
+Drafts must autosave.
+
+The editor must communicate save status clearly.
+
+Never silently discard unsaved work.
+
+Published content must be protected from accidental direct modification.
+
+10. Review
+
+Articles move through:
+
+DRAFT
+→ SUBMITTED
+→ UNDER REVIEW
+→ REVISION REQUESTED
+→ RESUBMITTED
+→ APPROVED
+→ PUBLISHED
+
+Authors should be able to see the status of their articles.
+
+Reviewers should be able to provide comments and decisions.
+
+11. Public Content
+
+Only approved/published articles should appear in public article discovery.
+
+Drafts and review-stage articles must not accidentally appear in public search results.
+
+12. Content Safety and Integrity
+
+Never allow article content to execute arbitrary JavaScript.
+
+Treat uploaded files and user-generated content as untrusted.
+
+Sanitize rendered content appropriately.
+
+Preserve mathematical notation accurately.
+
+Do not alter the author's mathematical meaning during rendering.

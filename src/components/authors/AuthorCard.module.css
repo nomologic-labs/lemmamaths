@@ -1,0 +1,112 @@
+/* Ruled with borders on the cells rather than a gap over a tinted parent: with nine
+   contributors the two-column grid has an odd cell left over, and a gap-based rule would
+   paint it as a solid block. */
+.list {
+  display: grid;
+  border-top: 1px solid var(--rule-hairline);
+}
+
+.card {
+  border-bottom: 1px solid var(--rule-hairline);
+}
+
+@media (min-width: 46rem) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card:nth-child(odd) {
+    border-inline-end: 1px solid var(--rule-hairline);
+  }
+}
+
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-page);
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+
+.card:hover {
+  background: var(--surface-raised);
+}
+
+/*
+ * A set of initials rather than a photograph. Lemma's authors are school students; a
+ * monogram identifies a contributor without asking a sixteen-year-old for a portrait,
+ * and it will still be the sensible default when accounts are real.
+ */
+.monogram {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: var(--accent-wash);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-sm);
+  grid-row: 1 / span 2;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+  align-self: center;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.card:hover .name {
+  color: var(--accent);
+}
+
+.name a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.role {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 0.2rem;
+}
+
+.bio {
+  grid-column: 2;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.meta {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
+.count {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

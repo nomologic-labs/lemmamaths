@@ -1,0 +1,85 @@
+.header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--z-header);
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: clamp(var(--space-4), 3vw, var(--space-6));
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    backdrop-filter var(--duration-base) var(--ease-out);
+}
+
+/* Transparent over the hero, then a parchment bar with a hairline once the reader has
+   left the first screen. Nothing moves, only the surface arrives. */
+.headerSolid {
+  background: color-mix(in srgb, var(--surface-page) 88%, transparent);
+  backdrop-filter: saturate(1.1) blur(10px);
+  border-bottom-color: var(--rule-hairline);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 2.5rem;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.button:hover {
+  color: var(--text-primary);
+  background: var(--accent-wash);
+}
+
+.menuLabel {
+  display: none;
+}
+
+@media (min-width: 40rem) {
+  .menuLabel {
+    display: inline;
+  }
+}
+
+.brand {
+  margin-inline: auto var(--space-1);
+  opacity: 1;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+/* On the homepage the hero already says "Lemma" in 9rem type. Repeating it in the bar
+   above would be the first thing a visitor sees twice. */
+.brandHidden {
+  opacity: 0;
+  transform: translateY(-0.4rem);
+  pointer-events: none;
+}
+
+.spacer {
+  margin-inline-start: auto;
+}
+
+.searchLabel {
+  display: none;
+}
+
+@media (min-width: 52rem) {
+  .searchLabel {
+    display: inline;
+  }
+}

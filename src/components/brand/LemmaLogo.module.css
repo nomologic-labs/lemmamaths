@@ -1,0 +1,42 @@
+.logo {
+  display: block;
+  flex: none;
+  height: auto;
+}
+
+/* Adaptive: the tile becomes the page's raised surface so the mark sits in the
+   material rather than punching a bright parchment square out of a dark page.
+   Geometry, proportion and the letter/dot colour relationship are unchanged. */
+.adaptive {
+  --logo-tile: var(--surface-raised);
+  --logo-edge: var(--rule-soft);
+  --logo-letter: var(--text-primary);
+  --logo-dot: var(--accent);
+}
+
+/* Brand: the reference artwork's own colours, for contexts that must not shift
+   (favicons, share images, print, anything on an unknown background). */
+.brand {
+  --logo-tile: #f5ede0;
+  --logo-edge: #c9a876;
+  --logo-letter: #2b1509;
+  --logo-dot: #8c4a1e;
+}
+
+.tile {
+  fill: var(--logo-tile);
+  stroke: var(--logo-edge);
+  transition:
+    fill var(--duration-base) var(--ease-out),
+    stroke var(--duration-base) var(--ease-out);
+}
+
+.letter {
+  fill: var(--logo-letter);
+  transition: fill var(--duration-base) var(--ease-out);
+}
+
+.dot {
+  fill: var(--logo-dot);
+  transition: fill var(--duration-base) var(--ease-out);
+}

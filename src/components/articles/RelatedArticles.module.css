@@ -1,0 +1,28 @@
+.related {
+  border-top: 1px solid var(--rule-hairline);
+  background: var(--surface-raised);
+  padding-block: var(--space-8) var(--space-9);
+  margin-top: var(--space-9);
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 var(--space-5);
+}
+
+.grid {
+  display: grid;
+  gap: 0 var(--space-7);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 44rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
