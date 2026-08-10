@@ -5,7 +5,13 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { ArticleSummary } from "@/data/types";
 import styles from "./HomeSections.module.css";
 
-export function RecentlyPublished({ articles }: { articles: readonly ArticleSummary[] }) {
+export function RecentlyPublished({
+  articles,
+  authorNames,
+}: {
+  articles: readonly ArticleSummary[];
+  authorNames?: Record<string, string>;
+}) {
   return (
     <Container as="section" className={styles.section} id="recent">
       <Reveal shift="1rem">
@@ -26,7 +32,7 @@ export function RecentlyPublished({ articles }: { articles: readonly ArticleSumm
             delay={(index % 3) * 90}
             shift="1.25rem"
           >
-            <ArticleCard article={article} />
+            <ArticleCard article={article} authorNames={authorNames} />
           </Reveal>
         ))}
       </div>

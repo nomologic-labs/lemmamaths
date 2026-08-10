@@ -4,7 +4,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import styles from "./HomeSections.module.css";
 
-export function ExploreTopics() {
+export function ExploreTopics({ topicCounts }: { topicCounts?: Record<string, number> }) {
   return (
     <Container as="section" className={styles.section} id="topics">
       <Reveal shift="1rem">
@@ -16,7 +16,7 @@ export function ExploreTopics() {
         />
       </Reveal>
       <Reveal delay={80} shift="1rem">
-        <TopicGrid />
+        <TopicGrid topicCounts={topicCounts} />
       </Reveal>
     </Container>
   );

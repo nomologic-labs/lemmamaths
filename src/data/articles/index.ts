@@ -1,4 +1,5 @@
 import type { Article, ArticleSummary } from "../types";
+import { materializeArticles } from "@/lib/articles/block-ids";
 import { CATALOGUE } from "./catalogue";
 import { centralLimitTheorem } from "./central-limit-theorem";
 import { continuedFractions } from "./continued-fractions";
@@ -7,21 +8,25 @@ import { floatingPoint } from "./floating-point";
 import { newtonsMethod } from "./newtons-method";
 
 /**
- * The article registry.
+ * Mock / seed article registry.
  *
- * Everything here is imported statically so that the whole archive is known at build
- * time and every article page can be pre-rendered. When articles move to a database,
- * this module is the seam: the exported functions keep their signatures and become
- * async, and nothing above them in the tree needs to know.
+ * After Phase 6, PostgreSQL is authoritative for the public site
+ * (`src/lib/articles/public.ts`). This module remains as:
+ * - seed source for `npm run db:seed`
+ * - development fixtures
+ * - unit-test content samples
+ *
+ * Mock source articles may omit block ids; materialization assigns deterministic
+ * `blk_<slug>…` ids so seeded bodies keep stable identity.
  */
-const ALL: readonly Article[] = [
+const ALL: readonly Article[] = materializeArticles([
   determinantVolume,
   newtonsMethod,
   centralLimitTheorem,
   continuedFractions,
   floatingPoint,
   ...CATALOGUE,
-];
+]);
 
 function byNewestFirst(a: { publishedOn: string }, b: { publishedOn: string }): number {
   return b.publishedOn.localeCompare(a.publishedOn);

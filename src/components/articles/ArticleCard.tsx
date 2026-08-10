@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { formatAuthorNames } from "@/data/authors";
 import { topicName } from "@/data/topics";
 import type { ArticleSummary } from "@/data/types";
+import { formatAuthorNames } from "@/lib/articles/author-display";
 import { FORMAT_LABELS, formatDateShort, formatReadingTime } from "@/lib/articles/labels";
 import { PeerReviewBadge } from "./PeerReviewBadge";
 import styles from "./ArticleCard.module.css";
@@ -14,6 +14,8 @@ export type ArticleCardProps = {
   headingLevel?: 2 | 3;
   /** Off on an author's own page, where every row would carry the same name. */
   showAuthor?: boolean;
+  /** Public handle → display name. Required for correct author lines once mock data is not the registry. */
+  authorNames?: Record<string, string>;
 };
 
 export function ArticleCard({
@@ -21,6 +23,7 @@ export function ArticleCard({
   variant = "grid",
   headingLevel = 3,
   showAuthor = true,
+  authorNames,
 }: ArticleCardProps) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const primaryTopic = article.topics[0];
@@ -44,7 +47,9 @@ export function ArticleCard({
 
       <div className={styles.meta}>
         {showAuthor && (
-          <span className={styles.author}>{formatAuthorNames(article.authorIds)}</span>
+          <span className={styles.author}>
+            {formatAuthorNames(article.authorIds, authorNames)}
+          </span>
         )}
         <span className={styles.dates}>
           <span>{formatDateShort(article.publishedOn)}</span>

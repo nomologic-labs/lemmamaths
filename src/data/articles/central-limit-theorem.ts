@@ -1,6 +1,6 @@
-import type { Article } from "../types";
+import type { SourceArticle } from "@/lib/articles/block-ids";
 
-export const centralLimitTheorem: Article = {
+export const centralLimitTheorem: SourceArticle = {
   slug: "the-central-limit-theorem-simulated",
   title: "The Central Limit Theorem, Simulated",
   standfirst:

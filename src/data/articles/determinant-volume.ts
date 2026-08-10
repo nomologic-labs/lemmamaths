@@ -1,6 +1,6 @@
-import type { Article } from "../types";
+import type { SourceArticle } from "@/lib/articles/block-ids";
 
-export const determinantVolume: Article = {
+export const determinantVolume: SourceArticle = {
   slug: "why-the-determinant-measures-volume",
   title: "Why the Determinant Measures Volume",
   standfirst:

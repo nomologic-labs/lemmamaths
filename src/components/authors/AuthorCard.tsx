@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { countArticlesByAuthor } from "@/data/articles";
 import { topicName } from "@/data/topics";
 import type { Author } from "@/data/types";
 import styles from "./AuthorCard.module.css";
@@ -12,9 +11,13 @@ export function initials(name: string): string {
     .join("");
 }
 
-export function AuthorCard({ author }: { author: Author }) {
-  const count = countArticlesByAuthor(author.id);
-
+export function AuthorCard({
+  author,
+  articleCount = 0,
+}: {
+  author: Author;
+  articleCount?: number;
+}) {
   return (
     <article className={styles.card}>
       <span className={styles.monogram} aria-hidden="true">
@@ -27,7 +30,7 @@ export function AuthorCard({ author }: { author: Author }) {
       <p className={styles.bio}>{author.bio}</p>
       <div className={styles.meta}>
         <span className={styles.count}>
-          {count} {count === 1 ? "article" : "articles"}
+          {articleCount} {articleCount === 1 ? "article" : "articles"}
         </span>
         <span>{author.interests.map(topicName).join(" · ")}</span>
       </div>
@@ -35,11 +38,21 @@ export function AuthorCard({ author }: { author: Author }) {
   );
 }
 
-export function AuthorList({ authors }: { authors: readonly Author[] }) {
+export function AuthorList({
+  authors,
+  articleCounts = {},
+}: {
+  authors: readonly Author[];
+  articleCounts?: Record<string, number>;
+}) {
   return (
     <div className={styles.list}>
       {authors.map((author) => (
-        <AuthorCard key={author.id} author={author} />
+        <AuthorCard
+          key={author.id}
+          author={author}
+          articleCount={articleCounts[author.id] ?? 0}
+        />
       ))}
     </div>
   );

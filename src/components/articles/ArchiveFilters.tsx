@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUTHORS } from "@/data/authors";
 import { TOPICS } from "@/data/topics";
 import { FORMAT_LABELS, FORMAT_ORDER, REVIEW_LABELS, REVIEW_ORDER } from "@/lib/articles/labels";
 import {
@@ -20,6 +19,8 @@ import styles from "./ArchiveFilters.module.css";
 export type ArchiveFiltersProps = {
   query: ArchiveQuery;
   facets: FacetCounts;
+  /** Public author handles available for filtering. */
+  authors: readonly { id: string; name: string }[];
 };
 
 type Option = { value: string; label: string; count: number };
@@ -53,7 +54,7 @@ function selectionFrom(query: ArchiveQuery): Selection {
  * `router.replace` rather than `push` keeps the back button meaning "the page before the
  * archive" instead of replaying every intermediate filter state.
  */
-export function ArchiveFilters({ query, facets }: ArchiveFiltersProps) {
+export function ArchiveFilters({ query, facets, authors }: ArchiveFiltersProps) {
   const router = useRouter();
   const panelId = useId();
   const queryKey = serialiseArchiveQuery(query);
@@ -130,11 +131,13 @@ export function ArchiveFilters({ query, facets }: ArchiveFiltersProps) {
     })),
     // Authors are ordered by how much they have in the current view, since nine names
     // in publication order tells the reader nothing.
-    author: AUTHORS.map((author) => ({
-      value: author.id,
-      label: author.name,
-      count: facets.authors[author.id] ?? 0,
-    })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
+    author: authors
+      .map((author) => ({
+        value: author.id,
+        label: author.name,
+        count: facets.authors[author.id] ?? 0,
+      }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
   };
 
   return (

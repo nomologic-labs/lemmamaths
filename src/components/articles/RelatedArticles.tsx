@@ -10,7 +10,13 @@ import styles from "./RelatedArticles.module.css";
  * to. Nothing is shown when nothing scores — an empty row of cards would say less than
  * the footer that follows it.
  */
-export function RelatedArticles({ articles }: { articles: ArticleSummary[] }) {
+export function RelatedArticles({
+  articles,
+  authorNames,
+}: {
+  articles: ArticleSummary[];
+  authorNames?: Record<string, string>;
+}) {
   if (articles.length === 0) return null;
 
   return (
@@ -22,7 +28,7 @@ export function RelatedArticles({ articles }: { articles: ArticleSummary[] }) {
         <div className={styles.grid}>
           {articles.map((article, index) => (
             <Reveal key={article.slug} delay={index * 70}>
-              <ArticleCard article={article} />
+              <ArticleCard article={article} authorNames={authorNames} />
             </Reveal>
           ))}
         </div>

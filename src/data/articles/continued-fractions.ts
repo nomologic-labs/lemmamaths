@@ -1,6 +1,6 @@
-import type { Article } from "../types";
+import type { SourceArticle } from "@/lib/articles/block-ids";
 
-export const continuedFractions: Article = {
+export const continuedFractions: SourceArticle = {
   slug: "continued-fractions-and-best-approximations",
   title: "Continued Fractions and Best Approximations",
   standfirst:

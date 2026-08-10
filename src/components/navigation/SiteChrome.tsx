@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { SearchEntry } from "@/lib/articles/search-index";
+import type { NavSession } from "./session";
 import { NavigationDrawer, type DrawerCounts } from "./NavigationDrawer";
 import { SearchDialog } from "./SearchDialog";
 import { SiteHeader } from "./SiteHeader";
@@ -10,6 +11,7 @@ import { SiteHeader } from "./SiteHeader";
 export type SiteChromeProps = {
   counts: DrawerCounts;
   searchIndex: readonly SearchEntry[];
+  session: NavSession;
 };
 
 /**
@@ -18,7 +20,7 @@ export type SiteChromeProps = {
  * component, so the client bundle for a reader who never opens the menu is the header
  * plus the theme provider.
  */
-export function SiteChrome({ counts, searchIndex }: SiteChromeProps) {
+export function SiteChrome({ counts, searchIndex, session }: SiteChromeProps) {
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -64,6 +66,7 @@ export function SiteChrome({ counts, searchIndex }: SiteChromeProps) {
         onClose={closeNav}
         onOpenSearch={openSearch}
         counts={counts}
+        session={session}
       />
       <SearchDialog open={searchOpen} onClose={closeSearch} index={searchIndex} />
     </>

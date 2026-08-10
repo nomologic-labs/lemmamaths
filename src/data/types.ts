@@ -12,7 +12,7 @@
  *      reader's browser. A closed set of block kinds cannot express anything we have
  *      not already decided to render.
  *   3. It stores as a single JSON column when a database is chosen, and peer-review
- *      comments can eventually address individual blocks by index or id.
+ *      comments address individual blocks by stable `id` (never by array index).
  *
  * V0.1 keeps these values in TypeScript files under src/data/. Nothing outside
  * src/data/ and src/lib/articles/ should assume that.
@@ -101,13 +101,22 @@ export type StatementVariant =
   | "remark"
   | "exercise";
 
+/**
+ * Canonical document block. Every block carries a stable `id` (`blk_…`) so reorder,
+ * autosave, and future review comments do not depend on array position.
+ *
+ * Mock articles under `src/data/articles/` may omit ids in source form; the registry
+ * materializes them via `materializeArticle` in `src/lib/articles/block-ids.ts`.
+ * Database-persisted bodies must include ids (enforced by Zod on save).
+ */
 export type ArticleBlock =
   /** Sections only. Article titles are `h1`, so bodies start at `h2`. */
-  | { kind: "heading"; level: 2 | 3; text: string }
-  | { kind: "paragraph"; content: InlineNode[] }
+  | { id: string; kind: "heading"; level: 2 | 3; text: string }
+  | { id: string; kind: "paragraph"; content: InlineNode[] }
   /** Display mathematics. `tag` renders as a right-aligned equation number. */
-  | { kind: "math"; tex: string; tag?: string }
+  | { id: string; kind: "math"; tex: string; tag?: string }
   | {
+      id: string;
       kind: "statement";
       variant: StatementVariant;
       /** Optional name, e.g. "Lagrange" renders as "Theorem 2.1 (Lagrange)". */
@@ -115,9 +124,10 @@ export type ArticleBlock =
       number?: string;
       content: ArticleBlock[];
     }
-  | { kind: "proof"; of?: string; content: ArticleBlock[] }
-  | { kind: "list"; ordered: boolean; items: InlineNode[][] }
+  | { id: string; kind: "proof"; of?: string; content: ArticleBlock[] }
+  | { id: string; kind: "list"; ordered: boolean; items: InlineNode[][] }
   | {
+      id: string;
       kind: "figure";
       /** Path under /public. Uploaded PNG/JPEG only, per the engineering rules. */
       src: string;
@@ -127,8 +137,8 @@ export type ArticleBlock =
       caption?: InlineNode[];
     }
   /** Highlighted at render time by Shiki; never stored pre-rendered. */
-  | { kind: "code"; language: string; code: string; caption?: string }
-  | { kind: "quote"; content: InlineNode[]; attribution?: string };
+  | { id: string; kind: "code"; language: string; code: string; caption?: string }
+  | { id: string; kind: "quote"; content: InlineNode[]; attribution?: string };
 
 export interface Article {
   slug: string;

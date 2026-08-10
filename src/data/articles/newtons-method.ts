@@ -1,6 +1,6 @@
-import type { Article } from "../types";
+import type { SourceArticle } from "@/lib/articles/block-ids";
 
-export const newtonsMethod: Article = {
+export const newtonsMethod: SourceArticle = {
   slug: "newtons-method-and-its-basins",
   title: "Newton's Method and Its Basins of Attraction",
   standfirst:

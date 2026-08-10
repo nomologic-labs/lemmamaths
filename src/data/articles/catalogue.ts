@@ -1,11 +1,11 @@
-import type { Article } from "../types";
+import type { SourceArticle } from "@/lib/articles/block-ids";
 
 /*
  * Shorter published pieces. These carry genuine but brief bodies — an opening section
  * and a result — which is how a good deal of a real archive looks. The five long-form
  * articles live in their own files alongside this one.
  */
-export const CATALOGUE: readonly Article[] = [
+export const CATALOGUE: readonly SourceArticle[] = [
   {
     slug: "a-gentle-introduction-to-group-actions",
     title: "A Gentle Introduction to Group Actions",

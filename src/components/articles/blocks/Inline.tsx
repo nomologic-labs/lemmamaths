@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { InlineNode } from "@/data/types";
+import { isSafeHref } from "@/lib/articles/url-policy";
 import { InlineMath } from "@/components/ui/Math";
 import styles from "./Inline.module.css";
 
@@ -7,9 +8,8 @@ import styles from "./Inline.module.css";
  * Renders a run of inline content.
  *
  * The node union in src/data/types.ts is closed, so this switch is exhaustive and there
- * is no path by which author-supplied content becomes markup. Links are the one node
- * carrying a URL, and external ones are marked as such rather than silently opening a
- * new tab.
+ * is no path by which author-supplied content becomes markup. Links are re-checked with
+ * `isSafeHref` so unsafe stored values never become clickable URLs.
  */
 export function Inline({ nodes }: { nodes: readonly InlineNode[] }) {
   return (
@@ -42,7 +42,15 @@ function InlineOne({ node }: { node: InlineNode }) {
     case "code":
       return <code className={styles.code}>{node.text}</code>;
     case "link": {
-      const external = /^https?:\/\//.test(node.href);
+      if (!isSafeHref(node.href)) {
+        return (
+          <span className={styles.link}>
+            <Inline nodes={node.content} />
+          </span>
+        );
+      }
+
+      const external = /^https?:\/\//i.test(node.href);
       if (external) {
         return (
           <a className={styles.link} href={node.href} rel="noreferrer noopener">

@@ -7,15 +7,28 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/db/seed.ts",
+    "test:auth": "tsx --test scripts/test/authorization.test.ts",
+    "test:articles": "tsx --test scripts/test/articles.test.ts",
+    "test:review": "tsx --test scripts/test/review.test.ts",
+    "test:publishing": "tsx --test scripts/test/publishing.test.ts",
+    "test:url-policy": "tsx --test scripts/test/url-policy.test.ts"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.3",
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
     "katex": "^0.18.2",
     "next": "^16.3.0",
+    "next-auth": "^5.0.0-beta.32",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "server-only": "^0.0.1",
-    "shiki": "^4.4.2"
+    "shiki": "^4.4.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
@@ -23,9 +36,11 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.0",
     "puppeteer-core": "^25.5.0",
+    "tsx": "4.20.3",
     "typescript": "^6.0.3"
   }
 }

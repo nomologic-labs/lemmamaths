@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ARTICLES, ARTICLE_SUMMARIES, getArticle } from "@/data/articles";
-import { getAuthor } from "@/data/authors";
-import { findRelated } from "@/lib/articles/query";
 import { ArticleBody, headingId } from "@/components/articles/ArticleBody";
 import { ArticleContents, type ContentsEntry } from "@/components/articles/ArticleContents";
 import { ArticleHeader } from "@/components/articles/ArticleHeader";
@@ -11,23 +8,33 @@ import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { ReviewNote } from "@/components/articles/ReviewNote";
 import { Container } from "@/components/ui/Container";
 import { ArrowRightIcon } from "@/components/ui/icons";
+import { authorLookupToRecord } from "@/lib/articles/author-display";
+import {
+  getPublishedArticle,
+  getPublicAuthorNameMap,
+  listPublishedSlugs,
+  listPublishedSummaries,
+} from "@/lib/articles/public";
+import { findRelated } from "@/lib/articles/query";
 import styles from "./Article.module.css";
 
 type ArticlePageProps = { params: Promise<{ slug: string }> };
 
-/** Every article is known at build time, so each page is pre-rendered. */
-export function generateStaticParams() {
-  return ARTICLES.map((article) => ({ slug: article.slug }));
+/** Pre-render known published slugs when the database is available at build time. */
+export async function generateStaticParams() {
+  const slugs = await listPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticle(slug);
-  if (!article) return {};
+  const article = await getPublishedArticle(slug);
+  if (!article) return { robots: { index: false, follow: false } };
 
+  const nameMap = await getPublicAuthorNameMap();
   const authors = article.authorIds
-    .map((id) => getAuthor(id)?.name)
-    .filter((name) => name !== undefined);
+    .map((id) => nameMap.get(id))
+    .filter((name): name is string => Boolean(name));
 
   return {
     title: article.title,
@@ -44,23 +51,35 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const article = getArticle(slug);
+  const [article, summaries, nameMap] = await Promise.all([
+    getPublishedArticle(slug),
+    listPublishedSummaries(),
+    getPublicAuthorNameMap(),
+  ]);
   if (!article) notFound();
+
+  const authorNames = authorLookupToRecord(nameMap);
+  const authorOverrides = article.authorIds
+    .map((id) => {
+      const name = nameMap.get(id);
+      return name ? { id, name } : null;
+    })
+    .filter((entry): entry is { id: string; name: string } => entry !== null);
 
   const contents: ContentsEntry[] = article.body
     .filter((block) => block.kind === "heading")
     .map((block) => ({ id: headingId(block.text), text: block.text, level: block.level }));
 
-  const related = findRelated(ARTICLE_SUMMARIES, article);
+  const related = findRelated(summaries, article);
   const year = new Date(`${article.publishedOn}T00:00:00Z`).getUTCFullYear();
 
   return (
     <>
       <Container className={styles.layout}>
         <article className={styles.main}>
-          <ArticleHeader article={article} />
+          <ArticleHeader article={article} authorOverrides={authorOverrides} />
           <ArticleBody blocks={article.body} />
-          <ReviewNote review={article.review} />
+          <ReviewNote review={article.review} authorNames={authorNames} />
 
           <div className={styles.foot}>
             <Link href="/articles" className={styles.back}>
@@ -78,7 +97,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </div>
       </Container>
 
-      <RelatedArticles articles={related} />
+      <RelatedArticles articles={related} authorNames={authorNames} />
     </>
   );
 }

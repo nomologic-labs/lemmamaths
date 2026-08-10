@@ -1,0 +1,19 @@
+.page {
+  padding-block: var(--space-5) var(--space-9);
+}
+
+.toolbar {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.link {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.link:hover {
+  color: var(--accent);
+}

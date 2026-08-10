@@ -1,15 +1,23 @@
 import Link from "next/link";
 import { Fragment } from "react";
-import { getAuthor } from "@/data/authors";
 import type { ReviewRecord } from "@/data/types";
+import { resolveAuthorName } from "@/lib/articles/author-display";
 import { REVIEW_DESCRIPTIONS, formatDate } from "@/lib/articles/labels";
 import { PeerReviewBadge } from "./PeerReviewBadge";
 import styles from "./ReviewNote.module.css";
 
-export function ReviewNote({ review }: { review: ReviewRecord }) {
-  const referees = (review.reviewerIds ?? [])
-    .map((id) => getAuthor(id))
-    .filter((author) => author !== undefined);
+export function ReviewNote({
+  review,
+  authorNames,
+}: {
+  review: ReviewRecord;
+  authorNames?: Record<string, string>;
+}) {
+  const refereeIds = review.reviewerIds ?? [];
+  const referees = refereeIds.map((id) => ({
+    id,
+    name: resolveAuthorName(id, authorNames),
+  }));
 
   return (
     <aside className={styles.note} aria-label="Review record">

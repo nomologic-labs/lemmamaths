@@ -1,6 +1,6 @@
-import type { Article } from "../types";
+import type { SourceArticle } from "@/lib/articles/block-ids";
 
-export const floatingPoint: Article = {
+export const floatingPoint: SourceArticle = {
   slug: "floating-point-and-the-real-numbers",
   title: "Floating Point: Why 0.1 + 0.2 ≠ 0.3",
   standfirst:

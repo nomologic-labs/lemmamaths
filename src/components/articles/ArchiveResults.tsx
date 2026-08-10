@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { getAuthor } from "@/data/authors";
 import { topicName } from "@/data/topics";
 import type { ArticleSummary } from "@/data/types";
+import { resolveAuthorName } from "@/lib/articles/author-display";
 import { FORMAT_LABELS, REVIEW_LABELS } from "@/lib/articles/labels";
 import {
   archiveHref,
@@ -17,6 +17,7 @@ export type ArchiveResultsProps = {
   results: ArticleSummary[];
   /** Size of the unfiltered archive, for the "n of m" line. */
   total: number;
+  authorNames?: Record<string, string>;
 };
 
 type Chip = { key: string; kind: string; label: string; href: string };
@@ -26,7 +27,7 @@ type Chip = { key: string; kind: string; label: string; href: string };
  * means active filters can be undone without JavaScript, and it keeps this component
  * free of any duplicate of the filter state that lives in `ArchiveFilters`.
  */
-function buildChips(query: ArchiveQuery): Chip[] {
+function buildChips(query: ArchiveQuery, authorNames?: Record<string, string>): Chip[] {
   const chips: Chip[] = [];
   const without = <K extends keyof ArchiveQuery>(key: K, value: string) => ({
     ...query,
@@ -53,7 +54,7 @@ function buildChips(query: ArchiveQuery): Chip[] {
     chips.push({
       key: `author-${author}`,
       kind: "Author",
-      label: getAuthor(author)?.name ?? author,
+      label: resolveAuthorName(author, authorNames),
       href: archiveHref(without("authors", author)),
     });
   }
@@ -104,8 +105,13 @@ function buildEscapeRoutes(query: ArchiveQuery): { label: string; href: string }
   return routes.slice(0, 3);
 }
 
-export function ArchiveResults({ query, results, total }: ArchiveResultsProps) {
-  const chips = buildChips(query);
+export function ArchiveResults({
+  query,
+  results,
+  total,
+  authorNames,
+}: ArchiveResultsProps) {
+  const chips = buildChips(query, authorNames);
   const filtered = chips.length > 0;
 
   return (
@@ -152,7 +158,12 @@ export function ArchiveResults({ query, results, total }: ArchiveResultsProps) {
       {results.length > 0 ? (
         <div className={styles.list}>
           {results.map((article) => (
-            <ArticleCard key={article.slug} article={article} variant="list" />
+            <ArticleCard
+              key={article.slug}
+              article={article}
+              variant="list"
+              authorNames={authorNames}
+            />
           ))}
         </div>
       ) : (

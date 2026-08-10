@@ -1,8 +1,8 @@
-# Content system (mock data)
+# Content system (mock data / seed)
 
 ## Purpose
 
-All publishable content in V0.1 lives as typed TypeScript under `src/data/`. Presentation code must not hard-code article bodies inside page components.
+Typed content models and mock fixtures live under `src/data/`. **Runtime public pages** load published articles from PostgreSQL (`src/lib/articles/public.ts`). Mock modules remain the seed source (`npm run db:seed`) and test fixtures — not the live public registry.
 
 ## Important files
 

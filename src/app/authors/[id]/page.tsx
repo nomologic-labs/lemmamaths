@@ -1,44 +1,53 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ARTICLE_SUMMARIES, getArticlesByAuthor } from "@/data/articles";
-import { AUTHORS, getAuthor } from "@/data/authors";
-import { topicName } from "@/data/topics";
-import { formatDate } from "@/lib/articles/labels";
-import { archiveHref } from "@/lib/articles/query";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { topicName } from "@/data/topics";
+import { authorLookupToRecord } from "@/lib/articles/author-display";
+import { formatDate } from "@/lib/articles/labels";
+import {
+  getArticlesByAuthorHandle,
+  getPublicAuthor,
+  getPublicAuthorNameMap,
+  listPublicAuthors,
+  listPublishedSummaries,
+} from "@/lib/articles/public";
+import { archiveHref } from "@/lib/articles/query";
 import styles from "./Author.module.css";
 
 type AuthorPageProps = { params: Promise<{ id: string }> };
 
-export function generateStaticParams() {
-  return AUTHORS.map((author) => ({ id: author.id }));
+/** `id` in the URL is the public handle (not an internal UUID). */
+export async function generateStaticParams() {
+  const authors = await listPublicAuthors();
+  return authors.map((author) => ({ id: author.id }));
 }
 
 export async function generateMetadata({ params }: AuthorPageProps): Promise<Metadata> {
   const { id } = await params;
-  const author = getAuthor(id);
-  if (!author) return {};
+  const author = await getPublicAuthor(id);
+  if (!author) return { robots: { index: false, follow: false } };
   return { title: author.name, description: author.bio };
 }
 
 /**
- * An author's page.
- *
- * The article list is the archive's own card, and "everything by this author" is a link
- * into the archive rather than a second listing here — the same arrangement /topics
- * uses. When authors become real accounts, this page gains ownership and settings; the
- * public half of it does not have to change.
+ * An author's page. Route param remains `/authors/[id]` for compatibility; the value is
+ * the public handle.
  */
 export default async function AuthorPage({ params }: AuthorPageProps) {
   const { id } = await params;
-  const author = getAuthor(id);
+  const [author, written, summaries, nameMap] = await Promise.all([
+    getPublicAuthor(id),
+    getArticlesByAuthorHandle(id),
+    listPublishedSummaries(),
+    getPublicAuthorNameMap(),
+  ]);
   if (!author) notFound();
 
-  const written = getArticlesByAuthor(author.id);
-  const refereed = ARTICLE_SUMMARIES.filter((article) =>
+  const authorNames = authorLookupToRecord(nameMap);
+  const refereed = summaries.filter((article) =>
     article.review.reviewerIds?.includes(author.id),
   );
 
@@ -93,13 +102,14 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
                 article={article}
                 variant="list"
                 showAuthor={article.authorIds.length > 1}
+                authorNames={authorNames}
               />
             ))}
           </div>
         ) : (
           <p className={styles.empty}>
-            Nothing published yet. {author.name.split(" ")[0]} is currently refereeing for
-            other authors.
+            Nothing published yet. {author.name.split(" ")[0]} may be refereeing for other
+            authors.
           </p>
         )}
 

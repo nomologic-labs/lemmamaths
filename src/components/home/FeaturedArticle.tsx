@@ -3,9 +3,9 @@ import { PeerReviewBadge } from "@/components/articles/PeerReviewBadge";
 import { Container } from "@/components/ui/Container";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/Reveal";
-import { getAuthors } from "@/data/authors";
 import { topicName } from "@/data/topics";
 import type { ArticleSummary } from "@/data/types";
+import { resolveAuthorName } from "@/lib/articles/author-display";
 import { FORMAT_LABELS, formatDate, formatReadingTime } from "@/lib/articles/labels";
 import { archiveHref } from "@/lib/articles/query";
 import styles from "./HomeSections.module.css";
@@ -15,9 +15,21 @@ import styles from "./HomeSections.module.css";
  * the block of metadata a journal prints beside a featured piece — which keeps the
  * left-hand column free for nothing but type.
  */
-export function FeaturedArticle({ article }: { article: ArticleSummary }) {
-  const authors = getAuthors(article.authorIds);
-  const referees = getAuthors(article.review.reviewerIds ?? []);
+export function FeaturedArticle({
+  article,
+  authorNames,
+}: {
+  article: ArticleSummary;
+  authorNames?: Record<string, string>;
+}) {
+  const authors = article.authorIds.map((id) => ({
+    id,
+    name: resolveAuthorName(id, authorNames),
+  }));
+  const referees = (article.review.reviewerIds ?? []).map((id) => ({
+    id,
+    name: resolveAuthorName(id, authorNames),
+  }));
 
   return (
     <section className={styles.featured} aria-labelledby="featured-heading">

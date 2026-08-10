@@ -1,7 +1,8 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import Image from "next/image";
 import type { ArticleBlock, StatementVariant } from "@/data/types";
 import { DisplayMath } from "@/components/ui/Math";
+import { isSafeFigureSrc } from "@/lib/articles/url-policy";
 import { CodeBlock } from "./blocks/CodeBlock";
 import { Inline } from "./blocks/Inline";
 import styles from "./ArticleBody.module.css";
@@ -28,14 +29,28 @@ const STATEMENT_LABELS: Record<StatementVariant, string> = {
  * Figures are numbered as they are encountered rather than in the data, so an author
  * inserting a figure halfway through does not have to renumber the ones after it.
  */
-export function ArticleBody({ blocks }: { blocks: readonly ArticleBlock[] }) {
+export type ArticleBodyProps = {
+  blocks: readonly ArticleBlock[];
+  /**
+   * Optional chrome around each top-level block (used by the review UI).
+   * Receives the block and the already-rendered content node.
+   */
+  wrapBlock?: (block: ArticleBlock, content: ReactNode) => ReactNode;
+};
+
+export function ArticleBody({ blocks, wrapBlock }: ArticleBodyProps) {
   const numbered = withFigureNumbers(blocks);
 
   return (
     <div className={styles.body}>
-      {numbered.map(({ block, figureNumber }, index) => (
-        <Block key={index} block={block} figureNumber={figureNumber} />
-      ))}
+      {numbered.map(({ block, figureNumber }, index) => {
+        const content = <Block block={block} figureNumber={figureNumber} />;
+        return (
+          <Fragment key={block.id || index}>
+            {wrapBlock ? wrapBlock(block, content) : content}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
@@ -121,14 +136,18 @@ function Block({ block, figureNumber }: { block: ArticleBlock; figureNumber: num
       return (
         <figure className={styles.figure}>
           <div className={styles.figureFrame}>
-            <Image
-              className={styles.figureImage}
-              src={block.src}
-              alt={block.alt}
-              width={block.width}
-              height={block.height}
-              sizes="(min-width: 48rem) 46rem, 100vw"
-            />
+            {isSafeFigureSrc(block.src) ? (
+              <Image
+                className={styles.figureImage}
+                src={block.src}
+                alt={block.alt}
+                width={block.width}
+                height={block.height}
+                sizes="(min-width: 48rem) 46rem, 100vw"
+              />
+            ) : (
+              <p className={styles.caption}>{block.alt || "Image unavailable"}</p>
+            )}
           </div>
           {block.caption && (
             <figcaption className={styles.caption}>
@@ -207,7 +226,7 @@ function Nested({ blocks }: { blocks: readonly ArticleBlock[] }) {
   return (
     <>
       {numbered.map(({ block, figureNumber }, index) => (
-        <Block key={index} block={block} figureNumber={figureNumber} />
+        <Block key={block.id || index} block={block} figureNumber={figureNumber} />
       ))}
     </>
   );

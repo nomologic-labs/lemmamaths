@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Article discovery must remain usable as the archive grows past 100 articles (`docs/decisions/005-search-and-discovery.md`). V0.1 implements URL-driven server filtering over mock summaries, plus a lightweight command-palette-style search dialog.
+Article discovery must remain usable as the archive grows past 100 articles (`docs/decisions/005-search-and-discovery.md`). The site uses URL-driven server filtering over **published** DB summaries, plus a lightweight command-palette-style search dialog.
 
 ## Important files
 
@@ -18,7 +18,7 @@ src/components/navigation/SearchDialog.tsx
 
 ## Archive (`/articles`)
 
-Filtering runs **on the server** against `ARTICLE_SUMMARIES` and the URL query string.
+Filtering runs **on the server**: load published summaries from `listPublishedSummaries()`, then apply pure filters in `query.ts` against the URL query string.
 
 Why not client-side filtering of a downloaded index?
 

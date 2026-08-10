@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { InlineMath } from "@/components/ui/Math";
-import { countArticlesByTopic } from "@/data/articles";
 import { TOPICS } from "@/data/topics";
 import { archiveHref } from "@/lib/articles/query";
 import styles from "./TopicGrid.module.css";
@@ -10,13 +9,19 @@ import styles from "./TopicGrid.module.css";
  * selected, which is why /topics needs no article-listing code of its own — the archive
  * is the only place articles are listed and filtered.
  */
-export function TopicGrid({ headingLevel = 3 }: { headingLevel?: 2 | 3 }) {
+export function TopicGrid({
+  headingLevel = 3,
+  topicCounts = {},
+}: {
+  headingLevel?: 2 | 3;
+  topicCounts?: Record<string, number>;
+}) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
 
   return (
     <div className={styles.grid}>
       {TOPICS.map((topic) => {
-        const count = countArticlesByTopic(topic.id);
+        const count = topicCounts[topic.id] ?? 0;
         return (
           <article key={topic.id} className={styles.topic}>
             <InlineMath tex={topic.glyph} className={styles.glyph} />

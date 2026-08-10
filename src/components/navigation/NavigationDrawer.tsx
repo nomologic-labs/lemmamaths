@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LemmaWordmark } from "@/components/brand/LemmaWordmark";
-import { CloseIcon, DashboardIcon, SearchIcon } from "@/components/ui/icons";
+import { CloseIcon, SearchIcon } from "@/components/ui/icons";
 import { useDialog } from "@/lib/hooks/useDialog";
 import { AppearanceControl } from "./AppearanceControl";
+import { AuthNav } from "./AuthNav";
 import { isActivePath, PRIMARY_NAV } from "./nav-items";
+import type { NavSession } from "./session";
 import styles from "./NavigationDrawer.module.css";
 
 export type DrawerCounts = {
@@ -20,6 +22,7 @@ export type NavigationDrawerProps = {
   onClose: () => void;
   onOpenSearch: () => void;
   counts: DrawerCounts;
+  session: NavSession;
 };
 
 const COUNT_BY_HREF: Record<string, keyof DrawerCounts> = {
@@ -28,7 +31,7 @@ const COUNT_BY_HREF: Record<string, keyof DrawerCounts> = {
   "/authors": "authors",
 };
 
-export function NavigationDrawer({ open, onClose, onOpenSearch, counts }: NavigationDrawerProps) {
+export function NavigationDrawer({ open, onClose, onOpenSearch, counts, session }: NavigationDrawerProps) {
   const pathname = usePathname();
   const ref = useDialog(open, onClose);
 
@@ -103,14 +106,7 @@ export function NavigationDrawer({ open, onClose, onOpenSearch, counts }: Naviga
             </nav>
           </div>
 
-          <div>
-            <p className={styles.groupLabel}>Contribute</p>
-            <Link href="/dashboard" onClick={onClose} className={styles.dashboard}>
-              <DashboardIcon size={17} />
-              Author dashboard
-              <span className={styles.dashboardTag}>Preview</span>
-            </Link>
-          </div>
+          <AuthNav session={session} onNavigate={onClose} />
 
           <div>
             <p className={styles.groupLabel}>Appearance</p>

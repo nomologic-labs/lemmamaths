@@ -4,9 +4,8 @@ import { PeerReviewBadge } from "@/components/articles/PeerReviewBadge";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ArrowRightIcon } from "@/components/ui/icons";
-import { ARTICLE_SUMMARIES } from "@/data/articles";
-import { AUTHORS } from "@/data/authors";
 import { TOPICS } from "@/data/topics";
+import { listPublishedSummaries, listPublicAuthors } from "@/lib/articles/public";
 import { REVIEW_DESCRIPTIONS, REVIEW_ORDER } from "@/lib/articles/labels";
 import styles from "./About.module.css";
 
@@ -35,7 +34,12 @@ const STAGES = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [summaries, authors] = await Promise.all([
+    listPublishedSummaries(),
+    listPublicAuthors(),
+  ]);
+
   return (
     <>
       <PageHeader
@@ -54,8 +58,8 @@ export default function AboutPage() {
           <p>
             Lemma exists to give it somewhere. It publishes articles, investigations,
             essays, problem sets and reports across {TOPICS.length} fields of mathematics,
-            and it keeps them. There are currently {ARTICLE_SUMMARIES.length} pieces in the
-            archive from {AUTHORS.length} contributors, and nothing is ever taken down
+            and it keeps them. There are currently {summaries.length} pieces in the
+            archive from {authors.length} contributors, and nothing is ever taken down
             because it has stopped being recent.
           </p>
 

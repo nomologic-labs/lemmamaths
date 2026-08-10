@@ -1,6 +1,6 @@
-import { AUTHORS, getAuthor } from "@/data/authors";
 import { isTopicId, topicName } from "@/data/topics";
 import type { ArticleFormat, ArticleSummary, PeerReviewStatus, TopicId } from "@/data/types";
+import { resolveAuthorName, type AuthorNameLookup } from "./author-display";
 import { FORMAT_ORDER, REVIEW_ORDER } from "./labels";
 
 /*
@@ -80,17 +80,23 @@ function readOne(params: RawParams, key: string): string {
   return (Array.isArray(raw) ? raw[0] : raw) ?? "";
 }
 
-const AUTHOR_IDS = new Set(AUTHORS.map((a) => a.id));
 const FORMATS = new Set<string>(FORMAT_ORDER);
 const REVIEWS = new Set<string>(REVIEW_ORDER);
 
-/** Unknown values are dropped rather than rejected, so a stale link still works. */
-export function parseArchiveQuery(params: RawParams): ArchiveQuery {
+/**
+ * Unknown values are dropped rather than rejected, so a stale link still works.
+ * When `knownAuthorIds` is provided, only those handles are kept (public DB handles).
+ */
+export function parseArchiveQuery(
+  params: RawParams,
+  knownAuthorIds?: ReadonlySet<string>,
+): ArchiveQuery {
   const sort = readOne(params, "sort");
+  const authors = readList(params, "author");
   return {
     search: readOne(params, "q").slice(0, 120),
     topics: readList(params, "topic").filter(isTopicId),
-    authors: readList(params, "author").filter((id) => AUTHOR_IDS.has(id)),
+    authors: knownAuthorIds ? authors.filter((id) => knownAuthorIds.has(id)) : authors,
     formats: readList(params, "format").filter((f): f is ArticleFormat => FORMATS.has(f)),
     review: readList(params, "review").filter((r): r is PeerReviewStatus => REVIEWS.has(r)),
     sort: SORT_KEYS.includes(sort as SortKey) ? (sort as SortKey) : "newest",
@@ -121,8 +127,8 @@ export function archiveHref(query: Partial<ArchiveQuery>): string {
  * typing "Okonkwo" or "topology" into the search box does the obvious thing without the
  * reader having to discover the corresponding filter first.
  */
-function haystack(article: ArticleSummary): string {
-  const authors = article.authorIds.map((id) => getAuthor(id)?.name ?? "").join(" ");
+function haystack(article: ArticleSummary, authorNames?: AuthorNameLookup): string {
+  const authors = article.authorIds.map((id) => resolveAuthorName(id, authorNames)).join(" ");
   const topics = article.topics.map(topicName).join(" ");
   return [
     article.title,
@@ -137,9 +143,13 @@ function haystack(article: ArticleSummary): string {
 }
 
 /** Every term must appear somewhere, so extra words narrow rather than widen. */
-function matchesSearch(article: ArticleSummary, terms: string[]): boolean {
+function matchesSearch(
+  article: ArticleSummary,
+  terms: string[],
+  authorNames?: AuthorNameLookup,
+): boolean {
   if (terms.length === 0) return true;
-  const text = haystack(article);
+  const text = haystack(article, authorNames);
   return terms.every((term) => text.includes(term));
 }
 
@@ -177,10 +187,12 @@ const COMPARATORS: Record<SortKey, (a: ArticleSummary, b: ArticleSummary) => num
 export function filterArticles(
   articles: readonly ArticleSummary[],
   query: ArchiveQuery,
+  authorNames?: AuthorNameLookup,
 ): ArticleSummary[] {
   const terms = query.search.toLowerCase().split(/\s+/).filter(Boolean);
   const matched = articles.filter(
-    (article) => matchesFilters(article, query) && matchesSearch(article, terms),
+    (article) =>
+      matchesFilters(article, query) && matchesSearch(article, terms, authorNames),
   );
 
   if (terms.length > 0) {
@@ -206,6 +218,7 @@ export interface FacetCounts {
 export function computeFacets(
   articles: readonly ArticleSummary[],
   query: ArchiveQuery,
+  authorNames?: AuthorNameLookup,
 ): FacetCounts {
   const terms = query.search.toLowerCase().split(/\s+/).filter(Boolean);
   const counts: FacetCounts = { topics: {}, authors: {}, formats: {}, review: {} };
@@ -215,7 +228,7 @@ export function computeFacets(
   };
 
   for (const article of articles) {
-    if (!matchesSearch(article, terms)) continue;
+    if (!matchesSearch(article, terms, authorNames)) continue;
 
     // Each facet is counted against the query with that facet's own selection removed,
     // so a selected value still shows how many results it contributes rather than
