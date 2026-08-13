@@ -1,9 +1,42 @@
-import type { ArticleBlock } from "@/data/types";
+import type { ArticleBlock, ArticleFormat, TopicId } from "@/data/types";
 import {
   cloneBlockTreeWithNewIds,
   ensureBlockIds,
   type SourceArticleBlock,
 } from "./block-ids";
+
+export type EditorMetadata = {
+  title: string;
+  standfirst: string;
+  description: string;
+  format: ArticleFormat;
+  topics: TopicId[];
+  tags: string;
+  authorUserIds: string[];
+  featured: boolean;
+};
+
+export function metadataFromArticle(article: {
+  title: string;
+  standfirst: string | null;
+  description: string;
+  format: ArticleFormat;
+  topics: TopicId[];
+  tags: string[];
+  authorUserIds: string[];
+  featured: boolean;
+}): EditorMetadata {
+  return {
+    title: article.title,
+    standfirst: article.standfirst ?? "",
+    description: article.description,
+    format: article.format,
+    topics: article.topics,
+    tags: article.tags.join(", "),
+    authorUserIds: article.authorUserIds,
+    featured: article.featured,
+  };
+}
 
 /**
  * Editor list entries. The React key and the persisted block id are the same value.
@@ -64,8 +97,9 @@ export const BLOCK_MENU_ITEMS = [
   { kind: "statement" as const, label: "Theorem" },
   { kind: "proof" as const, label: "Proof" },
   { kind: "example" as const, label: "Example" },
-  { kind: "figure" as const, label: "Image" },
+  { kind: "figure" as const, label: "Figure" },
   { kind: "code" as const, label: "Code" },
+  { kind: "quote" as const, label: "Quote" },
 ] as const;
 
 export function defaultBlockForKind(
@@ -106,5 +140,7 @@ export function defaultBlockForKind(
       });
     case "code":
       return materializeNewBlock({ kind: "code", language: "python", code: "" });
+    case "quote":
+      return materializeNewBlock({ kind: "quote", content: [""] });
   }
 }

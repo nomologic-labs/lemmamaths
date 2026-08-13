@@ -14,6 +14,7 @@
   max-width: var(--measure-prose);
   font-family: var(--font-ui);
   font-size: var(--text-base);
+  line-height: var(--leading-ui);
   color: var(--text-muted);
 }
 
@@ -34,16 +35,28 @@
   color: var(--text-secondary);
 }
 
+.intro a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-soft);
+  text-underline-offset: 0.2em;
+}
+
+.intro a:hover {
+  color: var(--accent-hover);
+}
+
 .signInCard {
   max-width: var(--measure-prose);
   margin-bottom: var(--space-7);
-  padding: var(--space-5);
+  padding: var(--space-6);
   background: var(--surface-raised);
   border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
 }
 
 .signInIntro {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   font-family: var(--font-body);
   font-size: var(--text-md);
   line-height: var(--leading-prose);
@@ -54,28 +67,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   width: 100%;
-  min-height: 2.75rem;
-  padding-inline: var(--space-4);
+  min-height: var(--control-height);
+  padding-inline: var(--space-5);
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--text-on-accent);
+  color: var(--accent-contrast);
   background: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
   transition:
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.googleButton:hover {
-  background: color-mix(in srgb, var(--accent) 88%, var(--text-primary));
+.googleButton:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
-.googleButton:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+.googleButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .signInNote {
@@ -86,8 +102,12 @@
   color: var(--text-muted);
 }
 
-/* The panels are a sketch of the eventual dashboard, drawn as ruled sections so that
-   nothing here can be mistaken for a control that works. */
+.signInNote a {
+  color: var(--accent);
+}
+
+/* The panels are ruled sections rather than free-standing cards: hairline gaps over a
+   hairline ground, the same construction as the topic grid and the drafts list. */
 .panels {
   display: grid;
   gap: 1px;
@@ -124,6 +144,14 @@
   margin: 0;
 }
 
+.panelTitle a {
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.panelTitle a:hover {
+  color: var(--accent);
+}
+
 .panelBody {
   margin: 0;
   font-family: var(--font-body);
@@ -135,15 +163,6 @@
 .phase {
   justify-self: start;
   margin-top: var(--space-1);
-  padding: 0.15rem var(--space-3);
-  font-family: var(--font-ui);
-  font-size: var(--text-2xs);
-  font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--text-faint);
-  border: 1px solid var(--rule-hairline);
-  border-radius: var(--radius-pill);
 }
 
 .back {
@@ -154,6 +173,7 @@
   font-family: var(--font-ui);
   font-size: var(--text-base);
   color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .back:hover {

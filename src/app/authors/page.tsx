@@ -29,7 +29,7 @@ export default async function AuthorsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Contributors"
+        eyebrow="People"
         title="Authors"
         lede="Everything in the archive was written by a student, and most of it was refereed by one. These are the people currently writing for Lemma."
       />

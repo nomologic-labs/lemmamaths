@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   createReviewCommentAction,
   resolveReviewCommentAction,
@@ -23,6 +24,7 @@ type ReviewSidebarProps = {
   articleId: string;
   comments: SerializableReviewComment[];
   activeBlockId: string | null;
+  activeBlockLabel: string | null;
   onSelectBlock: (blockId: string | null) => void;
   canComment: boolean;
   canDecide: boolean;
@@ -34,12 +36,14 @@ export function ReviewSidebar({
   articleId,
   comments,
   activeBlockId,
+  activeBlockLabel,
   onSelectBlock,
   canComment,
   canDecide,
   currentUserId,
   isEditor,
 }: ReviewSidebarProps) {
+  const router = useRouter();
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -71,7 +75,7 @@ export function ReviewSidebar({
         return;
       }
       setDraft("");
-      window.location.reload();
+      router.refresh();
     });
   }
 
@@ -83,23 +87,23 @@ export function ReviewSidebar({
         setError(result.error);
         return;
       }
-      window.location.reload();
+      router.refresh();
     });
   }
 
   return (
     <aside className={styles.sidebar}>
-      <h2 className={styles.sidebarTitle}>{activeBlockId ? "Block comments" : "Review"}</h2>
+      <h2 className={styles.sidebarTitle}>{activeBlockId ? "Comments" : "Peer review"}</h2>
       {!activeBlockId && (
         <p className={styles.sidebarBody}>
-          Select a block to read or leave comments. Comments stay attached to the block&apos;s
-          stable id across reorders and later rounds.
+          Choose a block in the article to read or leave comments on it. Comments stay with that
+          block if blocks are reordered, and carry into later review rounds.
         </p>
       )}
 
       {activeBlockId && (
         <>
-          <p className={styles.meta}>Block {activeBlockId}</p>
+          <p className={styles.meta}>{activeBlockLabel ?? "Selected block"}</p>
           <button type="button" className={styles.buttonQuiet} onClick={() => onSelectBlock(null)}>
             Clear selection
           </button>
@@ -149,7 +153,7 @@ export function ReviewSidebar({
         <div>
           <h3 className={styles.sidebarTitle}>Removed blocks</h3>
           <p className={styles.sidebarBody}>
-            These comments refer to blocks no longer in the current manuscript.
+            These comments refer to blocks that are no longer in the article.
           </p>
           <ul className={styles.commentList}>
             {orphaned.map((comment) => (
@@ -169,10 +173,10 @@ export function ReviewSidebar({
 
       {canDecide && (
         <div className={styles.form}>
-          <h3 className={styles.sidebarTitle}>Your decision</h3>
+          <h3 className={styles.sidebarTitle}>Your recommendation</h3>
           <p className={styles.sidebarBody}>
-            Submitting a decision completes your assignment for this round. Editors decide whether
-            to request revisions or approve.
+            Sending your recommendation completes your assignment for this round. An
+            administrator makes the final decision on the article.
           </p>
           <div className={styles.decisionRow}>
             <button
@@ -181,7 +185,7 @@ export function ReviewSidebar({
               disabled={pending}
               onClick={() => submitDecision("request_revisions")}
             >
-              Request revisions
+              Recommend revisions
             </button>
             <button
               type="button"
@@ -215,10 +219,13 @@ function CommentCard({
   pending: boolean;
   onError: (message: string | null) => void;
 }) {
+  const router = useRouter();
+  const [cardPending, startCardTransition] = useTransition();
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState(comment.body);
   const canEdit = comment.authorUserId === currentUserId || isEditor;
   const createdLabel = new Date(comment.createdAt).toLocaleString("en-GB");
+  const busy = pending || cardPending;
 
   return (
     <li className={styles.comment} data-orphaned={comment.blockPresent ? "false" : "true"}>
@@ -231,7 +238,7 @@ function CommentCard({
         <span>Round {comment.roundNumber}</span>
         <span>·</span>
         <span>{createdLabel}</span>
-        {comment.resolved && <span>· Resolved</span>}
+        {comment.resolved && <span>· Addressed</span>}
       </div>
       {editing ? (
         <div className={styles.form}>
@@ -245,12 +252,20 @@ function CommentCard({
             <button
               type="button"
               className={styles.buttonPrimary}
-              disabled={pending}
+              disabled={busy}
               onClick={() => {
                 onError(null);
-                void updateReviewCommentAction({ commentId: comment.id, body }).then((result) => {
-                  if (!result.ok) onError(result.error);
-                  else window.location.reload();
+                startCardTransition(async () => {
+                  const result = await updateReviewCommentAction({
+                    commentId: comment.id,
+                    body,
+                  });
+                  if (!result.ok) {
+                    onError(result.error);
+                    return;
+                  }
+                  setEditing(false);
+                  router.refresh();
                 });
               }}
             >
@@ -266,7 +281,7 @@ function CommentCard({
       )}
       <div className={styles.blockActions}>
         {canEdit && !editing && (
-          <button type="button" className={styles.buttonQuiet} onClick={() => setEditing(true)}>
+          <button type="button" className={styles.buttonQuiet} disabled={busy} onClick={() => setEditing(true)}>
             Edit
           </button>
         )}
@@ -274,19 +289,23 @@ function CommentCard({
           <button
             type="button"
             className={styles.buttonQuiet}
-            disabled={pending}
+            disabled={busy}
             onClick={() => {
               onError(null);
-              void resolveReviewCommentAction({
-                commentId: comment.id,
-                resolved: !comment.resolved,
-              }).then((result) => {
-                if (!result.ok) onError(result.error);
-                else window.location.reload();
+              startCardTransition(async () => {
+                const result = await resolveReviewCommentAction({
+                  commentId: comment.id,
+                  resolved: !comment.resolved,
+                });
+                if (!result.ok) {
+                  onError(result.error);
+                  return;
+                }
+                router.refresh();
               });
             }}
           >
-            {comment.resolved ? "Reopen" : "Resolve"}
+            {comment.resolved ? "Reopen" : "Mark addressed"}
           </button>
         )}
       </div>

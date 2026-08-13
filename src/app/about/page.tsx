@@ -25,12 +25,16 @@ const STAGES = [
     body: "The author writes. Mathematics is typeset properly, figures are the author's own, and code is included when running it is part of the argument rather than decoration.",
   },
   {
-    name: "Refereeing",
-    body: "One or two other students read the draft in full and check it. A referee's job is to find the step that does not follow, not to agree that the subject is interesting.",
+    name: "Peer review",
+    body: "The author submits the draft and one or two other students — its referees — read it in full and comment. A reviewer's job is to find the step that does not follow, not to agree that the subject is interesting.",
   },
   {
-    name: "Revision and publication",
-    body: "Corrections go back to the author. What is published records who refereed it and when, so a reader can see what the label is based on.",
+    name: "Revision",
+    body: "If the reviewers ask for changes, the corrections go back to the author, who revises the draft and resubmits it for another round.",
+  },
+  {
+    name: "Approval and publication",
+    body: "An administrator approves the finished article and publishes it to the archive. What is published records who refereed it and when, so a reader can see what the label is based on.",
   },
 ];
 

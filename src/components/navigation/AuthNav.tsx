@@ -16,7 +16,7 @@ export function AuthNav({ session, onNavigate }: AuthNavProps) {
       <div>
         <p className={styles.groupLabel}>Contribute</p>
         <Link href="/dashboard" onClick={onNavigate} className={styles.dashboard}>
-          Author dashboard
+          Contributor dashboard
         </Link>
       </div>
     );
@@ -44,7 +44,7 @@ export function AuthNav({ session, onNavigate }: AuthNavProps) {
         ))}
         {session.contributorLinks.length === 0 ? (
           <p className={styles.awaiting}>
-            Your account is awaiting a contributor role from the editorial team.
+            Your account is waiting for a Lemma administrator to approve it.
           </p>
         ) : null}
         <form action={signOutAction}>

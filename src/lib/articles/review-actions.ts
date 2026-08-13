@@ -49,10 +49,12 @@ function formatZodError(error: ZodError): string {
 }
 
 function revalidateReviewPaths(articleId: string): void {
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/review");
   revalidatePath("/dashboard/review/assigned");
   revalidatePath(`/dashboard/review/${articleId}`);
   revalidatePath("/dashboard/drafts");
+  revalidatePath("/dashboard/published");
   revalidatePath(`/dashboard/drafts/${articleId}`);
   revalidatePath(`/dashboard/drafts/${articleId}/preview`);
 }
@@ -60,7 +62,7 @@ function revalidateReviewPaths(articleId: string): void {
 export async function assignReviewerAction(input: unknown): Promise<ActionResult> {
   try {
     const user = await requireSession();
-    if (!canManageReviewQueue(user.roles)) {
+    if (!canManageReviewQueue(user.permissions)) {
       return { ok: false, error: "You cannot assign reviewers." };
     }
 
@@ -114,7 +116,7 @@ export async function assignReviewerAction(input: unknown): Promise<ActionResult
 export async function removeReviewerAction(input: unknown): Promise<ActionResult> {
   try {
     const user = await requireSession();
-    if (!canManageReviewQueue(user.roles)) {
+    if (!canManageReviewQueue(user.permissions)) {
       return { ok: false, error: "You cannot remove reviewers." };
     }
 
@@ -140,7 +142,7 @@ export async function removeReviewerAction(input: unknown): Promise<ActionResult
 
 export async function startArticleReviewAction(articleId: string): Promise<ActionResult> {
   const user = await requireSession();
-  if (!canManageReviewQueue(user.roles)) {
+  if (!canManageReviewQueue(user.permissions)) {
     return { ok: false, error: "You cannot start review." };
   }
 
@@ -165,7 +167,7 @@ export async function startArticleReviewAction(articleId: string): Promise<Actio
 
 export async function editorRequestRevisionAction(articleId: string): Promise<ActionResult> {
   const user = await requireSession();
-  if (!canManageReviewQueue(user.roles)) {
+  if (!canManageReviewQueue(user.permissions)) {
     return { ok: false, error: "You cannot request revisions." };
   }
   const result = await requestRevisionAction(articleId);
@@ -177,7 +179,7 @@ export async function editorRequestRevisionAction(articleId: string): Promise<Ac
 
 export async function editorApproveArticleAction(articleId: string): Promise<ActionResult> {
   const user = await requireSession();
-  if (!canManageReviewQueue(user.roles)) {
+  if (!canManageReviewQueue(user.permissions)) {
     return { ok: false, error: "You cannot approve articles." };
   }
   const result = await approveArticleAction(articleId);
@@ -200,7 +202,7 @@ export async function createReviewCommentAction(input: unknown): Promise<ActionR
       return { ok: false, error: "There is no open review round." };
     }
 
-    const mayComment = canCreateReviewComment(user.roles, user.id, toAccessRecord(article), {
+    const mayComment = canCreateReviewComment(user.permissions, user.id, toAccessRecord(article), {
       assignmentActive: Boolean(assignment),
       roundOpen: true,
     });
@@ -254,7 +256,7 @@ export async function updateReviewCommentAction(input: unknown): Promise<ActionR
 
     if (
       !canEditReviewComment({
-        roles: user.roles,
+        permissions: user.permissions,
         userId: user.id,
         commentAuthorId: comment.authorUserId,
         article: toAccessRecord(article),
@@ -292,7 +294,7 @@ export async function resolveReviewCommentAction(input: unknown): Promise<Action
 
     if (
       !canResolveReviewComment({
-        roles: user.roles,
+        permissions: user.permissions,
         userId: user.id,
         commentAuthorId: comment.authorUserId,
         article: toAccessRecord(article),
@@ -333,7 +335,7 @@ export async function submitReviewDecisionAction(input: unknown): Promise<Action
     const assignment = await getActiveAssignment(article.id, user.id);
     if (
       !assignment ||
-      !canSubmitReviewDecision(user.roles, user.id, toAccessRecord(article), {
+      !canSubmitReviewDecision(user.permissions, user.id, toAccessRecord(article), {
         assignmentActive: true,
         roundOpen: assignment.round.status === "OPEN",
       })
@@ -374,7 +376,7 @@ export async function assertCanViewReview(articleId: string) {
   const user = await requireSession();
   const article = await getArticleById(articleId);
   if (!article) return null;
-  if (!canViewReviewFeedback(user.roles, user.id, toAccessRecord(article))) {
+  if (!canViewReviewFeedback(user.permissions, user.id, toAccessRecord(article))) {
     return null;
   }
   return { user, article };

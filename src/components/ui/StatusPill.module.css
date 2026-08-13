@@ -1,0 +1,32 @@
+/*
+ * One treatment for every state Lemma shows: workflow status, account status and role,
+ * and the build phase of a dashboard panel. Before this the same idea was drawn four
+ * different ways, so a draft's status looked unrelated to the same draft's status in
+ * the review queue.
+ *
+ * It is a ruled tag rather than a filled chip: the archive already uses that shape for
+ * article tags, and a page of filled status chips would read as a dashboard.
+ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.15rem var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-muted);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-pill);
+}
+
+/* For the state of the thing the reader is currently looking at, rather than the state
+   of one row among many. */
+.accent {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+  background: var(--accent-wash);
+}

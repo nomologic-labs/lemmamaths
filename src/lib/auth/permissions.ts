@@ -1,13 +1,18 @@
 /**
  * Lemma authorization vocabulary.
  *
- * Permissions are capabilities checked server-side. Roles map to sets of permissions.
- * Public article reading does not require a permission — it is open to all readers.
+ * Permissions are capabilities checked server-side. Account role maps to a set of
+ * permissions when account_status is active. Public article reading does not
+ * require a permission — it is open to all readers.
  */
 
-export const LEMMA_ROLES = ["author", "reviewer", "editor", "admin"] as const;
+export const ACCOUNT_ROLES = ["contributor", "administrator"] as const;
 
-export type LemmaRole = (typeof LEMMA_ROLES)[number];
+export type AccountRole = (typeof ACCOUNT_ROLES)[number];
+
+export const ACCOUNT_STATUSES = ["pending", "active", "suspended"] as const;
+
+export type AccountStatus = (typeof ACCOUNT_STATUSES)[number];
 
 export const PERMISSIONS = [
   "dashboard:access",
@@ -16,83 +21,72 @@ export const PERMISSIONS = [
   "article:read:assigned",
   "article:read:any",
   "article:edit:own",
-  "article:edit:assigned",
   "article:edit:any",
   "article:submit",
   "article:review",
   "article:approve",
   "article:publish",
-  "role:manage",
+  "account:manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
 
-const ROLE_PERMISSIONS: Record<LemmaRole, readonly Permission[]> = {
-  author: [
+const ROLE_PERMISSIONS: Record<AccountRole, readonly Permission[]> = {
+  contributor: [
     "dashboard:access",
     "article:create",
     "article:read:own",
+    "article:read:assigned",
     "article:edit:own",
     "article:submit",
-  ],
-  reviewer: [
-    "dashboard:access",
-    "article:read:assigned",
-    "article:edit:assigned",
     "article:review",
   ],
-  editor: [
+  administrator: [
     "dashboard:access",
     "article:create",
     "article:read:own",
     "article:read:assigned",
     "article:read:any",
     "article:edit:own",
-    "article:edit:assigned",
     "article:edit:any",
     "article:submit",
     "article:review",
     "article:approve",
     "article:publish",
-  ],
-  admin: [
-    "dashboard:access",
-    "article:create",
-    "article:read:own",
-    "article:read:assigned",
-    "article:read:any",
-    "article:edit:own",
-    "article:edit:assigned",
-    "article:edit:any",
-    "article:submit",
-    "article:review",
-    "article:approve",
-    "article:publish",
-    "role:manage",
+    "account:manage",
   ],
 };
 
-export function isLemmaRole(value: string): value is LemmaRole {
-  return (LEMMA_ROLES as readonly string[]).includes(value);
+export function isAccountRole(value: string): value is AccountRole {
+  return (ACCOUNT_ROLES as readonly string[]).includes(value);
 }
 
-export function permissionsForRoles(roles: readonly LemmaRole[]): ReadonlySet<Permission> {
-  const granted = new Set<Permission>();
-  for (const role of roles) {
-    for (const permission of ROLE_PERMISSIONS[role]) {
-      granted.add(permission);
-    }
+export function isAccountStatus(value: string): value is AccountStatus {
+  return (ACCOUNT_STATUSES as readonly string[]).includes(value);
+}
+
+export function permissionsForRole(role: AccountRole): ReadonlySet<Permission> {
+  return new Set(ROLE_PERMISSIONS[role]);
+}
+
+/** Active accounts receive role permissions; pending and suspended receive none. */
+export function permissionsForAccount(
+  role: AccountRole,
+  status: AccountStatus,
+): ReadonlySet<Permission> {
+  if (status !== "active") {
+    return new Set();
   }
-  return granted;
+  return permissionsForRole(role);
 }
 
 export function hasPermission(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   permission: Permission,
 ): boolean {
-  return permissionsForRoles(roles).has(permission);
+  return permissions.has(permission);
 }
 
-export function hasAnyRole(roles: readonly LemmaRole[]): boolean {
-  return roles.length > 0;
+export function isActiveAccount(status: AccountStatus): boolean {
+  return status === "active";
 }

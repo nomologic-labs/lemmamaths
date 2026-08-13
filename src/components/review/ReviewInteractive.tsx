@@ -8,6 +8,8 @@ type ReviewUiContextValue = {
   activeBlockId: string | null;
   setActiveBlockId: (blockId: string | null) => void;
   commentStats: Map<string, { total: number; unresolved: number }>;
+  /** Block id → reader-facing name such as "Paragraph 3". */
+  blockLabels: Record<string, string>;
 };
 
 const ReviewUiContext = createContext<ReviewUiContextValue | null>(null);
@@ -23,6 +25,7 @@ export function useReviewUi(): ReviewUiContextValue {
 type ReviewInteractiveProps = {
   articleId: string;
   comments: SerializableReviewComment[];
+  blockLabels: Record<string, string>;
   canComment: boolean;
   canDecide: boolean;
   currentUserId: string;
@@ -33,6 +36,7 @@ type ReviewInteractiveProps = {
 export function ReviewInteractive({
   articleId,
   comments,
+  blockLabels,
   canComment,
   canDecide,
   currentUserId,
@@ -53,13 +57,16 @@ export function ReviewInteractive({
   }, [comments]);
 
   return (
-    <ReviewUiContext.Provider value={{ activeBlockId, setActiveBlockId, commentStats }}>
+    <ReviewUiContext.Provider
+      value={{ activeBlockId, setActiveBlockId, commentStats, blockLabels }}
+    >
       <div className={styles.layout}>
         <div className={styles.article}>{children}</div>
         <ReviewSidebar
           articleId={articleId}
           comments={comments}
           activeBlockId={activeBlockId}
+          activeBlockLabel={activeBlockId ? (blockLabels[activeBlockId] ?? null) : null}
           onSelectBlock={setActiveBlockId}
           canComment={canComment}
           canDecide={canDecide}

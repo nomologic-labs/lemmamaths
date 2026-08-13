@@ -12,7 +12,7 @@ const BROWSE = [
 ];
 
 const CONTRIBUTE = [
-  { href: "/dashboard", label: "Author dashboard" },
+  { href: "/dashboard", label: "Contributor dashboard" },
   { href: "/about#writing", label: "Write for Lemma" },
   { href: "/about#review", label: "Peer review" },
 ];
@@ -81,7 +81,7 @@ export function SiteFooter() {
       <div className={styles.bottom}>
         <div className={styles.bottomInner}>
           <span>© {new Date().getFullYear()} Lemma. Written and refereed by students.</span>
-          <span className={styles.prototype}>V0.1 prototype · mock data</span>
+          <span className={styles.prototype}>V0.1 beta</span>
         </div>
       </div>
     </footer>

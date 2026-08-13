@@ -1,4 +1,4 @@
-import type { LemmaRole } from "./permissions";
+import type { Permission } from "./permissions";
 import { hasPermission } from "./permissions";
 
 export type ContributorNavLink = {
@@ -10,36 +10,37 @@ export type ContributorNavLink = {
  * Contributor navigation derived from authoritative permissions.
  * UI visibility only — every protected route still checks permissions server-side.
  */
-export function getContributorNavLinks(roles: readonly LemmaRole[]): ContributorNavLink[] {
+export function getContributorNavLinks(permissions: ReadonlySet<Permission>): ContributorNavLink[] {
   const links: ContributorNavLink[] = [];
 
-  if (hasPermission(roles, "dashboard:access")) {
+  if (hasPermission(permissions, "dashboard:access")) {
     links.push({ href: "/dashboard", label: "Dashboard" });
   }
 
-  if (hasPermission(roles, "article:create")) {
+  if (hasPermission(permissions, "article:create")) {
     links.push({ href: "/dashboard/drafts", label: "My drafts" });
+    links.push({ href: "/dashboard/published", label: "Published" });
   }
 
-  if (hasPermission(roles, "article:review")) {
-    links.push({ href: "/dashboard/review/assigned", label: "Review" });
+  if (hasPermission(permissions, "article:review")) {
+    links.push({ href: "/dashboard/review/assigned", label: "Peer review" });
   }
 
-  if (hasPermission(roles, "article:approve")) {
-    links.push({ href: "/dashboard/review", label: "Submissions" });
+  if (hasPermission(permissions, "article:approve")) {
+    links.push({ href: "/dashboard/review", label: "Editorial review" });
   }
 
-  if (hasPermission(roles, "role:manage")) {
-    links.push({ href: "/dashboard/admin/users", label: "Administration" });
+  if (hasPermission(permissions, "account:manage")) {
+    links.push({ href: "/dashboard/admin/users", label: "Accounts" });
   }
 
   return links;
 }
 
-export function canAccessDashboard(roles: readonly LemmaRole[]): boolean {
-  return hasPermission(roles, "dashboard:access");
+export function canAccessDashboard(permissions: ReadonlySet<Permission>): boolean {
+  return hasPermission(permissions, "dashboard:access");
 }
 
-export function canManageRoles(roles: readonly LemmaRole[]): boolean {
-  return hasPermission(roles, "role:manage");
+export function canManageAccounts(permissions: ReadonlySet<Permission>): boolean {
+  return hasPermission(permissions, "account:manage");
 }

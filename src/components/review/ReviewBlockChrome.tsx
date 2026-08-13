@@ -2,20 +2,9 @@
 
 import type { ReactNode } from "react";
 import type { ArticleBlock } from "@/data/types";
+import { BLOCK_KIND_LABELS } from "@/lib/articles/block-labels";
 import { useReviewUi } from "./ReviewInteractive";
 import styles from "./ReviewWorkspace.module.css";
-
-const BLOCK_KIND_LABEL: Record<ArticleBlock["kind"], string> = {
-  heading: "Heading",
-  paragraph: "Paragraph",
-  math: "Equation",
-  statement: "Statement",
-  proof: "Proof",
-  list: "List",
-  figure: "Figure",
-  code: "Code",
-  quote: "Quote",
-};
 
 type ReviewBlockChromeProps = {
   blockId: string;
@@ -24,7 +13,7 @@ type ReviewBlockChromeProps = {
 };
 
 export function ReviewBlockChrome({ blockId, kind, children }: ReviewBlockChromeProps) {
-  const { activeBlockId, setActiveBlockId, commentStats } = useReviewUi();
+  const { activeBlockId, setActiveBlockId, commentStats, blockLabels } = useReviewUi();
   const stats = commentStats.get(blockId) ?? { total: 0, unresolved: 0 };
 
   return (
@@ -42,9 +31,7 @@ export function ReviewBlockChrome({ blockId, kind, children }: ReviewBlockChrome
               }`
             : "Comment"}
         </button>
-        <span className={styles.meta}>
-          {BLOCK_KIND_LABEL[kind]} · {blockId.slice(0, 12)}…
-        </span>
+        <span className={styles.meta}>{blockLabels[blockId] ?? BLOCK_KIND_LABELS[kind]}</span>
       </div>
     </div>
   );

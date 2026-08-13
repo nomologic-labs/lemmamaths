@@ -56,8 +56,9 @@ export type WorkflowTransition = {
 };
 
 /**
- * Legal transitions. Publishing is defined for completeness but no publish
- * server action is exposed in this phase.
+ * Legal transitions. Every edge here has a server action behind it, including
+ * APPROVED → PUBLISHED (`publishArticleAction`), which only `article:publish` holders
+ * may take.
  */
 export const WORKFLOW_TRANSITIONS: readonly WorkflowTransition[] = [
   {

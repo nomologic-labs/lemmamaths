@@ -1,4 +1,16 @@
+import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
+
+// Drizzle Kit runs outside the Next.js runtime and does not auto-load .env.local.
+// Use the same env-loading convention as Next.js (see docs/manual/authentication.md).
+loadEnvConfig(process.cwd());
+
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error(
+    "DATABASE_URL is not set. Add it to .env.local for local development or to your deployment environment.",
+  );
+}
 
 export default defineConfig({
   schema: [
@@ -10,6 +22,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: databaseUrl,
   },
 });

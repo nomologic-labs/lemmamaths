@@ -87,13 +87,14 @@
   color: var(--accent);
 }
 
+/* Date, reading time and review status share the byline's row, separated by the same
+   interpunct-and-gap rhythm as the breadcrumb above the title. */
 .dates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
   font-variant-numeric: tabular-nums;
-}
-
-.updated {
-  color: var(--text-faint);
-  font-style: italic;
 }
 
 /* ---- Tags ---- */

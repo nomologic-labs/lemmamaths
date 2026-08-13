@@ -35,7 +35,9 @@ From product rules / `nav-items.ts` + drawer chrome:
 - Search trigger
 - Home, Articles, Topics, Authors, About (with counts where useful)
 - Appearance control (light / dark / system)
-- Author Dashboard link → `/dashboard` (placeholder only)
+- Contributor section (`AuthNav`): signed out, a *Contributor dashboard* link; signed in, the
+  links the account's permissions allow — Dashboard, My drafts, Published, Peer review, and
+  (for administrators) Editorial review and Accounts. Sources: `src/lib/auth/nav-links.ts`.
 
 Active section highlighting uses `isActivePath` so `/articles/some-slug` lights **Articles**.
 

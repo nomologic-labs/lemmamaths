@@ -46,7 +46,7 @@ When **disabled** (always on Vercel; also in `NODE_ENV=production` unless `LEMMA
 
 - The upload route returns **403**
 - The editor hides the file picker and explains that uploads are unavailable
-- Authors may still set figure `src` to a checked-in `/figures/…` path
+- Contributors may still set figure `src` to a checked-in `/figures/…` path
 
 ### Why uploads are off on Vercel
 

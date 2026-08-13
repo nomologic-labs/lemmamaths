@@ -1,19 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ArticleFormat, TopicId } from "@/data/types";
 import { saveDraftAction, submitDraftAction } from "@/lib/articles/actions";
 import {
   stripEditorBlocks,
-  toEditorBlocks,
   type EditorBlock,
+  type EditorMetadata,
 } from "@/lib/articles/editor-types";
 import type { EligibleAuthor } from "@/lib/articles/store";
 import type { ArticleWorkflowStatus } from "@/lib/articles/workflow";
-import { WORKFLOW_LABELS } from "@/lib/articles/workflow-labels";
+import {
+  WORKFLOW_CONTRIBUTOR_HINTS,
+  WORKFLOW_LABELS,
+} from "@/lib/articles/workflow-labels";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { ArrowRightIcon } from "@/components/ui/icons";
 import { BlockList } from "./BlockList";
-import { MetadataPanel, type EditorMetadata } from "./MetadataPanel";
+import { MetadataPanel } from "./MetadataPanel";
 import styles from "./ArticleEditor.module.css";
 
 type SaveState = "saved" | "saving" | "dirty" | "error";
@@ -89,6 +95,8 @@ export function ArticleEditor({
     `Saved ${new Date(lastSavedAt).toLocaleString("en-GB")}`,
   );
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const router = useRouter();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipAutosave = useRef(true);
   const metadataRef = useRef(metadata);
@@ -101,12 +109,12 @@ export function ArticleEditor({
     blocksRef.current = blocks;
   }, [metadata, blocks]);
 
-  const persist = useCallback(async () => {
+  const persist = useCallback(async (): Promise<boolean> => {
     // Serialize saves and always flush the latest payload when the in-flight
     // request finishes, so rapid edits cannot land a stale body in the database.
     if (persistInFlight.current) {
       persistQueued.current = true;
-      return;
+      return false;
     }
 
     persistInFlight.current = true;
@@ -125,7 +133,7 @@ export function ArticleEditor({
         if (!result.ok) {
           setSaveState("error");
           setSaveMessage(result.error);
-          return;
+          return false;
         }
 
         setSaveState("saved");
@@ -136,6 +144,7 @@ export function ArticleEditor({
     } finally {
       persistInFlight.current = false;
     }
+    return true;
   }, [articleId]);
 
   useEffect(() => {
@@ -158,17 +167,31 @@ export function ArticleEditor({
     await persist();
   }
 
+  /**
+   * Submitting flushes pending edits first. If that save fails the article is not
+   * submitted, so a contributor never sends a version the server did not accept.
+   */
   async function handleSubmit() {
+    setSubmitError(null);
     setSubmitting(true);
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    await persist();
+
+    const saved = await persist();
+    if (!saved) {
+      setSubmitting(false);
+      setSubmitError(
+        "Your latest changes could not be saved, so nothing was submitted. Your draft is still here — fix the problem and try again.",
+      );
+      return;
+    }
+
     const result = await submitDraftAction(articleId);
     setSubmitting(false);
     if (!result.ok) {
-      alert(result.error);
+      setSubmitError(`${result.error} Your draft has been saved and is unchanged.`);
       return;
     }
-    window.location.reload();
+    router.refresh();
   }
 
   return (
@@ -176,9 +199,10 @@ export function ArticleEditor({
       <header className={styles.toolbar}>
         <div className={styles.toolbarLeft}>
           <Link href="/dashboard/drafts" className={styles.back}>
-            ← Drafts
+            <ArrowRightIcon size={16} />
+            My drafts
           </Link>
-          <span className={styles.workflow}>{WORKFLOW_LABELS[workflowStatus]}</span>
+          <StatusPill tone="accent">{WORKFLOW_LABELS[workflowStatus]}</StatusPill>
           <span className={styles.saveState} data-state={saveState} aria-live="polite">
             {saveState === "saving" && "Saving…"}
             {saveState === "dirty" && "Unsaved changes"}
@@ -200,11 +224,21 @@ export function ArticleEditor({
               disabled={submitting}
               onClick={() => void handleSubmit()}
             >
-              Submit for review
+              {workflowStatus === "REVISION_REQUESTED"
+                ? "Resubmit for peer review"
+                : "Submit for peer review"}
             </button>
           )}
         </div>
       </header>
+
+      <p className={styles.statusHint}>{WORKFLOW_CONTRIBUTOR_HINTS[workflowStatus]}</p>
+
+      {submitError && (
+        <p className={styles.error} role="alert">
+          {submitError}
+        </p>
+      )}
 
       <div className={styles.layout}>
         <main className={styles.main}>
@@ -225,27 +259,3 @@ export function ArticleEditor({
     </div>
   );
 }
-
-export function metadataFromArticle(article: {
-  title: string;
-  standfirst: string | null;
-  description: string;
-  format: ArticleFormat;
-  topics: TopicId[];
-  tags: string[];
-  authorUserIds: string[];
-  featured: boolean;
-}): EditorMetadata {
-  return {
-    title: article.title,
-    standfirst: article.standfirst ?? "",
-    description: article.description,
-    format: article.format,
-    topics: article.topics,
-    tags: article.tags.join(", "),
-    authorUserIds: article.authorUserIds,
-    featured: article.featured,
-  };
-}
-
-export { toEditorBlocks };

@@ -2,9 +2,9 @@
 
 ## Status
 
-**Google OAuth authentication is implemented (Phase 2).** Role-based authorization is implemented (Phase 3).
+**Implemented.** Google OAuth sign-in, handle onboarding, and permission-based authorization all work end to end.
 
-Contributors can sign in with a personal Google account, choose a Lemma handle on first sign-in, and access the contributor dashboard when assigned a role. See [Authorization](./authorization.md).
+Contributors sign in with a personal Google account, choose a Lemma handle on first sign-in, and reach the contributor dashboard once an administrator approves the account. See [Authorization](./authorization.md).
 
 Public article pages read published PostgreSQL rows. Signing in does not by itself grant roles or publish content.
 
@@ -28,12 +28,12 @@ Lemma separates four concepts (see [Decision 007](../decisions/007-authenticatio
 
 1. **Google account** — authentication identity (OAuth)
 2. **`users` row** — Lemma application identity (internal UUID, email, handle)
-3. **`author_profiles` row** — public publishing identity (not created automatically in Phase 2)
-4. **`user_roles` rows** — authorization capabilities (not granted automatically except admin bootstrap)
+3. **`author_profiles` row** — public publishing identity (never created automatically)
+4. **`users.account_role` / `users.account_status`** — authorization (see [Decision 011](../decisions/011-account-roles-and-status.md))
 
 A contributor's Google display name is stored in `users.name` for convenience but is **not** the public Lemma identity. The application-owned `handle` (e.g. `nadia-okonkwo`) is chosen during onboarding and is normally immutable.
 
-Signing in with Google does **not** automatically grant the `author` role.
+Signing in with Google creates a `contributor` account in `pending` status. An administrator must approve the account before drafting, review, or editorial tools become available (except handle onboarding).
 
 ## Authentication flow
 
@@ -83,20 +83,20 @@ Server action: `claimHandle` in `src/lib/auth/actions.ts`.
 
 ## Admin bootstrap
 
-If `LEMMA_BOOTSTRAP_ADMIN_EMAIL` is set, the first Google sign-in with that exact email receives the `admin` role idempotently (`src/lib/auth/bootstrap-admin.ts`), provided Google’s OIDC profile has `email_verified: true`.
+If `LEMMA_BOOTSTRAP_ADMIN_EMAIL` is set, the first Google sign-in with that exact email becomes `administrator` + `active` idempotently (`src/lib/auth/bootstrap-admin.ts`), provided Google’s OIDC profile has `email_verified: true`.
 
 - Compared server-side only against the Auth.js sign-in event email (from Google OAuth)
 - Requires Google `profile.email_verified === true` (not Auth.js `users.emailVerified`, which is for Email/magic-link providers and stays null for OAuth)
 - Never exposed to the client
 - Never based on display name, domain, or client input
-- Uses `ON CONFLICT DO NOTHING` on `(user_id, role)`
+- Uses `UPDATE users SET account_role = 'administrator', account_status = 'active'`
 
 To bootstrap the founding admin:
 
 1. Set `LEMMA_BOOTSTRAP_ADMIN_EMAIL=you@example.com` in `.env.local` / Vercel
 2. Apply database migrations
 3. Sign in with that Google account
-4. Remove or rotate the env var after bootstrap if desired (existing admin role remains)
+4. Remove or rotate the env var after bootstrap if desired (existing administrator account remains)
 
 ## Google OAuth setup
 
@@ -164,13 +164,13 @@ OAuth end-to-end testing requires real Google credentials and an applied migrati
 
 ## Security constraints
 
-- Authorization for publishing and review is **not** implemented yet
+- Every capability is a permission checked server-side in `src/lib/auth/permissions.ts` and `src/lib/auth/guards.ts`; review and publishing are authorized there, not in the UI
 - Never trust client-side session display for security decisions
 - Never trust client-provided user IDs
 - OAuth secrets exist only in server environment variables (`src/auth.ts`)
 
-## Planned (Phase 3+)
+## Not implemented
 
-- `permissions.ts` / `guards.ts` role enforcement
-- Author profile creation and public author pages backed by the database
-- Article persistence and editor
+- Self-service author profile creation. `author_profiles` rows are not created at sign-up, so
+  a contributor has no public author page until one exists. Articles by an author without a
+  profile still carry a byline (their handle); the byline is simply not a link.

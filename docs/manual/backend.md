@@ -18,7 +18,7 @@ Public reading uses PostgreSQL via `src/lib/articles/public.ts` (published rows 
 - Review rounds, reviewer assignment, block comments, decisions
 - Public article/author reads from PostgreSQL
 - Idempotent seed for mock authors + published articles (`npm run db:seed`)
-- SQL migrations in `drizzle/` through `0006_publishing_fields.sql`
+- SQL migrations in `drizzle/` through `0007_account_role_status.sql`
 
 ### Not implemented
 

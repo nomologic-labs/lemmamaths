@@ -1,5 +1,5 @@
 import type { Permission } from "@/lib/auth/permissions";
-import { hasPermission, type LemmaRole } from "@/lib/auth/permissions";
+import { hasPermission } from "@/lib/auth/permissions";
 import type { ArticleWorkflowStatus } from "./workflow";
 import {
   canAuthorEditWorkflow,
@@ -24,16 +24,16 @@ export function isArticleAuthor(userId: string, article: ArticleAccessInput): bo
 }
 
 export function canReadArticle(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   userId: string,
   article: ArticleAccessInput,
 ): boolean {
-  if (hasPermission(roles, "article:read:any")) return true;
-  if (hasPermission(roles, "article:read:own") && isArticleAuthor(userId, article)) {
+  if (hasPermission(permissions, "article:read:any")) return true;
+  if (hasPermission(permissions, "article:read:own") && isArticleAuthor(userId, article)) {
     return true;
   }
   if (
-    hasPermission(roles, "article:read:assigned") &&
+    hasPermission(permissions, "article:read:assigned") &&
     (article.assignedReviewerIds?.includes(userId) ?? false)
   ) {
     return true;
@@ -42,17 +42,17 @@ export function canReadArticle(
 }
 
 export function canEditArticleRecord(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   userId: string,
   article: ArticleAccessInput,
 ): boolean {
-  if (hasPermission(roles, "article:edit:any") && canEditorEditWorkflow(article.workflowStatus)) {
+  if (hasPermission(permissions, "article:edit:any") && canEditorEditWorkflow(article.workflowStatus)) {
     return true;
   }
 
   if (
     isArticleAuthor(userId, article) &&
-    hasPermission(roles, "article:edit:own") &&
+    hasPermission(permissions, "article:edit:own") &&
     canAuthorEditWorkflow(article.workflowStatus)
   ) {
     return true;
@@ -62,11 +62,11 @@ export function canEditArticleRecord(
 }
 
 export function canSubmitArticle(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   userId: string,
   article: ArticleAccessInput,
 ): boolean {
-  if (!hasPermission(roles, "article:submit")) return false;
+  if (!hasPermission(permissions, "article:submit")) return false;
   if (!isArticleAuthor(userId, article)) return false;
   if (article.workflowStatus === "DRAFT") return true;
   if (article.workflowStatus === "REVISION_REQUESTED") return true;
@@ -74,25 +74,25 @@ export function canSubmitArticle(
 }
 
 export function canDeleteDraft(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   userId: string,
   article: ArticleAccessInput,
 ): boolean {
   if (article.workflowStatus !== "DRAFT") return false;
-  if (hasPermission(roles, "article:edit:any")) return true;
-  return article.createdById === userId && hasPermission(roles, "article:edit:own");
+  if (hasPermission(permissions, "article:edit:any")) return true;
+  return article.createdById === userId && hasPermission(permissions, "article:edit:own");
 }
 
-export function canSetFeatured(roles: readonly LemmaRole[]): boolean {
-  return hasPermission(roles, "article:publish") || hasPermission(roles, "article:edit:any");
+export function canSetFeatured(permissions: ReadonlySet<Permission>): boolean {
+  return hasPermission(permissions, "article:publish") || hasPermission(permissions, "article:edit:any");
 }
 
-/** Editor/admin publish gate: permission + APPROVED status. */
+/** Administrator publish gate: permission + APPROVED status. */
 export function canPublishArticle(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   article: ArticleAccessInput,
 ): boolean {
-  if (!hasPermission(roles, "article:publish")) return false;
+  if (!hasPermission(permissions, "article:publish")) return false;
   return article.workflowStatus === "APPROVED";
 }
 
@@ -114,14 +114,14 @@ export function submitTargetStatus(
  * Permission, ownership (when required), and legal edge must all hold.
  */
 export function canPerformTransition(
-  roles: readonly LemmaRole[],
+  permissions: ReadonlySet<Permission>,
   userId: string,
   article: ArticleAccessInput,
   to: ArticleWorkflowStatus,
 ): WorkflowTransition | null {
   const transition = getTransition(article.workflowStatus, to);
   if (!transition) return null;
-  if (!hasPermission(roles, transition.permission)) return null;
+  if (!hasPermission(permissions, transition.permission)) return null;
   if (transition.requireAuthor && !isArticleAuthor(userId, article)) return null;
   return transition;
 }

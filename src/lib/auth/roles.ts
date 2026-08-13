@@ -1,25 +1,44 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { userRoles } from "@/lib/db/schema";
-import type { LemmaRole } from "./permissions";
-import { isLemmaRole } from "./permissions";
+import { users } from "@/lib/db/schema";
+import type { AccountRole, AccountStatus } from "./permissions";
+import { isAccountRole, isAccountStatus } from "./permissions";
 
-export async function loadRolesForUser(userId: string): Promise<LemmaRole[]> {
-  const rows = await db
-    .select({ role: userRoles.role })
-    .from(userRoles)
-    .where(eq(userRoles.userId, userId));
+export type UserAccount = {
+  accountRole: AccountRole;
+  accountStatus: AccountStatus;
+};
 
-  return rows.map((row) => row.role).filter(isLemmaRole);
+const DEFAULT_ACCOUNT: UserAccount = {
+  accountRole: "contributor",
+  accountStatus: "pending",
+};
+
+export async function loadAccountForUser(userId: string): Promise<UserAccount> {
+  const [row] = await db
+    .select({
+      accountRole: users.accountRole,
+      accountStatus: users.accountStatus,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!row) return DEFAULT_ACCOUNT;
+
+  return {
+    accountRole: isAccountRole(row.accountRole) ? row.accountRole : "contributor",
+    accountStatus: isAccountStatus(row.accountStatus) ? row.accountStatus : "pending",
+  };
 }
 
-export async function countUsersWithRole(role: LemmaRole): Promise<number> {
+export async function countActiveAdministrators(): Promise<number> {
   const rows = await db
-    .select({ userId: userRoles.userId })
-    .from(userRoles)
-    .where(eq(userRoles.role, role));
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.accountRole, "administrator"), eq(users.accountStatus, "active")));
 
   return rows.length;
 }

@@ -3,20 +3,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ArrowRightIcon } from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/guards";
-import { listManagedUsers } from "@/lib/auth/role-management";
+import { listManagedUsers } from "@/lib/auth/account-management";
 import { AdminUsersTable } from "./AdminUsersTable";
 import styles from "./AdminUsers.module.css";
 
 export const metadata: Metadata = {
-  title: "User administration",
+  title: "Accounts",
   robots: { index: false },
 };
 
 export default async function AdminUsersPage() {
   let actor;
   try {
-    actor = await requirePermission("role:manage");
+    actor = await requirePermission("account:manage");
   } catch {
     redirect("/dashboard");
   }
@@ -26,17 +27,18 @@ export default async function AdminUsersPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Administration"
-        title="Lemma users"
-        lede="Grant and revoke contributor roles. Role changes are recorded in the audit log."
+        eyebrow="Administer"
+        title="Accounts"
+        lede="Approve contributors, change account status, and edit names and handles. Every change is recorded in the audit log."
       />
       <Container className={styles.page}>
         <p className={styles.intro}>
-          A Lemma account alone does not confer contributor capabilities. Assign roles here after a
-          student has signed in and chosen a handle.
+          A new Google sign-in becomes a Contributor with the status Pending. Approving the
+          account is what lets someone write, submit, and review articles.
         </p>
         <AdminUsersTable users={users} currentUserId={actor.id} />
         <Link href="/dashboard" className={styles.back}>
+          <ArrowRightIcon size={16} />
           Back to dashboard
         </Link>
       </Container>

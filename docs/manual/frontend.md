@@ -11,7 +11,8 @@
 | `/authors` | Author index |
 | `/authors/[id]` | Author profile + their articles |
 | `/about` | Product explanation |
-| `/dashboard` | Non-functional author dashboard placeholder |
+| `/dashboard` | Contributor dashboard: account state and links to the tools the account can use |
+| `/dashboard/drafts`, `/dashboard/published`, `/dashboard/review*`, `/dashboard/admin/users` | Contributor, peer-review, editorial and account tools (see [Article editor](./article-editor.md), [Review system](./review-system.md), [Authorization](./authorization.md)) |
 
 There are **no** separate topic article pages. Topic browsing is a filtered archive URL so filtering behaviour stays identical wherever the reader arrives from.
 
@@ -21,12 +22,14 @@ There are **no** separate topic article pages. Topic browsing is a filtered arch
 src/components/
 ├── brand/          LemmaLogo, LemmaWordmark
 ├── navigation/     SiteChrome, SiteHeader, NavigationDrawer, SearchDialog,
-│                   AppearanceControl, SiteFooter, nav-items
+│                   AppearanceControl, SiteFooter, AuthNav, nav-items
 ├── home/           Hero, RecentlyPublished, FeaturedArticle, ExploreTopics, BrowseArchive
 ├── articles/       Archive*, Article*, PeerReviewBadge, RelatedArticles, blocks/
+├── editor/         ArticleEditor, BlockList, BlockEditor, MetadataPanel, MathPreview
+├── review/         ReviewQueueClient, ReviewSidebar, AuthorFeedbackPanel, ReviewInteractive
 ├── topics/         TopicGrid
 ├── authors/        AuthorCard
-└── ui/             Container, PageHeader, SectionHeading, Reveal, Math, icons
+└── ui/             Container, PageHeader, SectionHeading, Reveal, Math, StatusPill, icons
 ```
 
 Pages under `src/app/` stay thin: they load data and compose these components.

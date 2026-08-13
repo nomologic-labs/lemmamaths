@@ -23,6 +23,7 @@
   margin: 0;
   font-family: var(--font-ui);
   font-size: var(--text-sm);
+  line-height: var(--leading-ui);
   color: var(--text-faint);
 }
 
@@ -30,5 +31,6 @@
   margin: 0;
   font-family: var(--font-ui);
   font-size: var(--text-sm);
-  color: var(--text-error, #b3261e);
+  line-height: var(--leading-ui);
+  color: var(--danger);
 }

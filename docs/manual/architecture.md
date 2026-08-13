@@ -30,6 +30,8 @@ Browser
         ├── Auth routes — /login, /api/auth/*, /onboarding/*
         ├── Protected /dashboard — session, handle, and roles
         ├── Draft editor — /dashboard/drafts/* with JSONB article bodies
+        ├── Published list — /dashboard/published (read-only; links to the archive)
+        ├── Peer review — /dashboard/review/assigned and /dashboard/review/[articleId]
         ├── Editorial review / publish — /dashboard/review
         └── Database layer (src/lib/db) — users, sessions, roles, articles, audit log
 ```

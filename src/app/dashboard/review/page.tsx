@@ -19,7 +19,7 @@ export default async function ReviewQueuePage() {
   const user = await getAuthenticatedUser();
   if (!user) redirect("/login?callbackUrl=/dashboard/review");
   if (!user.handle) redirect("/onboarding/handle?callbackUrl=/dashboard/review");
-  if (!canManageReviewQueue(user.roles)) redirect("/dashboard");
+  if (!canManageReviewQueue(user.permissions)) redirect("/dashboard");
 
   const [items, eligibleReviewers] = await Promise.all([
     listReviewQueue(),
@@ -35,25 +35,26 @@ export default async function ReviewQueuePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Editorial"
-        title="Review queue"
-        lede="Submitted manuscripts, reviewer assignments, and editorial decisions."
+        eyebrow="Administer"
+        title="Editorial review"
+        lede="Submitted articles, reviewer assignments, and the decisions that approve and publish them."
       />
       <Container className={styles.page}>
         <div className={styles.toolbar}>
           <div className={styles.links}>
-            <Link href="/dashboard" className={styles.link}>
-              ← Dashboard
+            <Link href="/dashboard" className={`${styles.link} ${styles.linkBack}`}>
+              <ArrowRightIcon size={16} />
+              Dashboard
             </Link>
             <Link href="/dashboard/review/assigned" className={styles.link}>
-              Assigned to me
+              Peer review
             </Link>
           </div>
         </div>
         <ReviewQueueClient items={serializable} eligibleReviewers={eligibleReviewers} />
-        <Link href="/dashboard" className={styles.link} style={{ display: "inline-flex", marginTop: "2rem", gap: "0.35rem" }}>
-          Back to dashboard
+        <Link href="/dashboard" className={`${styles.link} ${styles.backLink}`}>
           <ArrowRightIcon size={16} />
+          Back to dashboard
         </Link>
       </Container>
     </>

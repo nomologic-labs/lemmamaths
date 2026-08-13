@@ -17,7 +17,15 @@ const fullSchema = {
 export type LemmaDatabase = ReturnType<typeof drizzle<typeof fullSchema>>;
 
 export function hasDatabaseUrl(): boolean {
-  return typeof process.env.DATABASE_URL === "string" && process.env.DATABASE_URL.length > 0;
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url || url.startsWith("replace-with-")) return false;
+
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "postgresql:" || parsed.protocol === "postgres:";
+  } catch {
+    return false;
+  }
 }
 
 function getDatabaseUrl(): string {

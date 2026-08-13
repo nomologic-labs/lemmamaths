@@ -41,7 +41,9 @@ function formatZodError(error: ZodError): string {
 }
 
 function revalidateArticlePaths(articleId: string, publicSlug?: string): void {
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/drafts");
+  revalidatePath("/dashboard/published");
   revalidatePath(`/dashboard/drafts/${articleId}`);
   revalidatePath(`/dashboard/drafts/${articleId}/preview`);
   revalidatePath("/dashboard/review");
@@ -77,7 +79,7 @@ export async function saveDraftAction(input: unknown): Promise<ActionResult<{ up
       return { ok: false, error: "Published articles cannot be edited in place." };
     }
 
-    if (!canEditArticleRecord(user.roles, user.id, toAccessRecord(article))) {
+    if (!canEditArticleRecord(user.permissions, user.id, toAccessRecord(article))) {
       return { ok: false, error: "You cannot edit this article." };
     }
 
@@ -91,7 +93,7 @@ export async function saveDraftAction(input: unknown): Promise<ActionResult<{ up
     }
 
     const featured =
-      parsed.metadata.featured && canSetFeatured(user.roles)
+      parsed.metadata.featured && canSetFeatured(user.permissions)
         ? true
         : article.featured;
 
@@ -137,7 +139,7 @@ async function applyWorkflowTransition(
 
     const expectedFrom = article.workflowStatus;
     const transition = canPerformTransition(
-      user.roles,
+      user.permissions,
       user.id,
       toAccessRecord(article),
       targetStatus,
@@ -190,7 +192,7 @@ export async function submitDraftAction(articleId: string): Promise<ActionResult
       return { ok: false, error: "Article not found." };
     }
 
-    if (!canSubmitArticle(user.roles, user.id, toAccessRecord(article))) {
+    if (!canSubmitArticle(user.permissions, user.id, toAccessRecord(article))) {
       return { ok: false, error: "This article cannot be submitted." };
     }
 
@@ -214,7 +216,7 @@ export async function startReviewAction(articleId: string): Promise<ActionResult
   if (!article) return { ok: false, error: "Article not found." };
 
   const target: ArticleWorkflowStatus = "UNDER_REVIEW";
-  if (!canPerformTransition(user.roles, user.id, toAccessRecord(article), target)) {
+  if (!canPerformTransition(user.permissions, user.id, toAccessRecord(article), target)) {
     return { ok: false, error: "Cannot move this article into review." };
   }
   return applyWorkflowTransition(articleId, target);
@@ -233,7 +235,7 @@ export async function approveArticleAction(articleId: string): Promise<ActionRes
     if (!article) return { ok: false, error: "Article not found." };
 
     const transition = canPerformTransition(
-      user.roles,
+      user.permissions,
       user.id,
       toAccessRecord(article),
       "APPROVED",
@@ -273,12 +275,12 @@ export async function publishArticleAction(articleId: string): Promise<ActionRes
     const article = await getArticleById(articleId);
     if (!article) return { ok: false, error: "Article not found." };
 
-    if (!canPublishArticle(user.roles, toAccessRecord(article))) {
+    if (!canPublishArticle(user.permissions, toAccessRecord(article))) {
       return { ok: false, error: "This article cannot be published." };
     }
 
     const transition = canPerformTransition(
-      user.roles,
+      user.permissions,
       user.id,
       toAccessRecord(article),
       "PUBLISHED",
@@ -301,9 +303,11 @@ export async function publishArticleAction(articleId: string): Promise<ActionRes
       publishedOn,
       slug: publicSlug,
       peerReviewStatus:
-        article.peerReviewStatus === "under-review"
-          ? "editorial-review"
-          : article.peerReviewStatus,
+        (article.assignedReviewerIds?.length ?? 0) > 0
+          ? "peer-reviewed"
+          : article.peerReviewStatus === "under-review"
+            ? "editorial-review"
+            : article.peerReviewStatus,
     });
 
     if (!updated) {
@@ -359,7 +363,7 @@ export async function deleteDraftAction(articleId: string): Promise<ActionResult
       return { ok: false, error: "Article not found." };
     }
 
-    if (!canDeleteDraft(user.roles, user.id, toAccessRecord(article))) {
+    if (!canDeleteDraft(user.permissions, user.id, toAccessRecord(article))) {
       return { ok: false, error: "You cannot delete this draft." };
     }
 
@@ -375,7 +379,7 @@ export async function assertArticleReadable(articleId: string) {
   const user = await requireSession();
   const article = await getArticleById(articleId);
   if (!article) return null;
-  if (!canReadArticle(user.roles, user.id, toAccessRecord(article))) {
+  if (!canReadArticle(user.permissions, user.id, toAccessRecord(article))) {
     return null;
   }
   return { user, article };

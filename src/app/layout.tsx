@@ -56,7 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           handle: authUser.handle,
           name: authUser.name,
         },
-        contributorLinks: getContributorNavLinks(authUser.roles),
+        contributorLinks: getContributorNavLinks(authUser.permissions),
       }
     : null;
 

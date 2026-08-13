@@ -4,10 +4,13 @@ import { notFound, redirect } from "next/navigation";
 import { ArticleBody } from "@/components/articles/ArticleBody";
 import { ArticleHeader } from "@/components/articles/ArticleHeader";
 import { Container } from "@/components/ui/Container";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { ArrowRightIcon } from "@/components/ui/icons";
 import { ReviewBlockChrome } from "@/components/review/ReviewBlockChrome";
 import { ReviewInteractive } from "@/components/review/ReviewInteractive";
 import type { Article } from "@/data/types";
 import { collectBlockIds } from "@/lib/articles/block-ids";
+import { buildBlockLabels } from "@/lib/articles/block-labels";
 import {
   canCreateReviewComment,
   canManageReviewQueue,
@@ -19,13 +22,14 @@ import {
   getOpenRound,
   listCommentsForArticle,
 } from "@/lib/articles/review-store";
+import { assignmentStatusLabel, reviewDecisionLabel } from "@/lib/articles/review-labels";
 import { getArticleById, getAuthorDisplays, toAccessRecord } from "@/lib/articles/store";
 import { WORKFLOW_LABELS } from "@/lib/articles/workflow-labels";
 import { getAuthenticatedUser } from "@/lib/auth/guards";
 import styles from "@/components/review/ReviewWorkspace.module.css";
 
 export const metadata: Metadata = {
-  title: "Review article",
+  title: "Peer review",
   robots: { index: false },
 };
 
@@ -40,7 +44,7 @@ export default async function ReviewArticlePage({ params }: PageProps) {
   if (!user.handle) redirect(`/onboarding/handle?callbackUrl=/dashboard/review/${articleId}`);
 
   const article = await getArticleById(articleId);
-  if (!article || !canViewReviewFeedback(user.roles, user.id, toAccessRecord(article))) {
+  if (!article || !canViewReviewFeedback(user.permissions, user.id, toAccessRecord(article))) {
     notFound();
   }
 
@@ -50,11 +54,11 @@ export default async function ReviewArticlePage({ params }: PageProps) {
   const comments = await listCommentsForArticle(article.id, presentIds);
   const authorOverrides = await getAuthorDisplays(article.authorUserIds);
 
-  const canComment = canCreateReviewComment(user.roles, user.id, toAccessRecord(article), {
+  const canComment = canCreateReviewComment(user.permissions, user.id, toAccessRecord(article), {
     assignmentActive: Boolean(assignment),
     roundOpen: openRound?.status === "OPEN",
   });
-  const canDecide = canSubmitReviewDecision(user.roles, user.id, toAccessRecord(article), {
+  const canDecide = canSubmitReviewDecision(user.permissions, user.id, toAccessRecord(article), {
     assignmentActive: Boolean(assignment),
     roundOpen: openRound?.status === "OPEN",
   });
@@ -70,7 +74,7 @@ export default async function ReviewArticlePage({ params }: PageProps) {
     tags: article.tags,
     format: article.format,
     readingMinutes: article.readingMinutes,
-    review: { status: "under-review" },
+    review: { status: article.peerReviewStatus },
     featured: article.featured,
     body: article.body,
   };
@@ -86,12 +90,16 @@ export default async function ReviewArticlePage({ params }: PageProps) {
     <Container className={styles.page}>
       <header className={styles.toolbar}>
         <div className={styles.links}>
-          <Link href="/dashboard/review/assigned" className={styles.link}>
-            ← Assigned
+          <Link
+            href="/dashboard/review/assigned"
+            className={`${styles.link} ${styles.linkBack}`}
+          >
+            <ArrowRightIcon size={16} />
+            Assigned to me
           </Link>
-          {canManageReviewQueue(user.roles) && (
+          {canManageReviewQueue(user.permissions) && (
             <Link href="/dashboard/review" className={styles.link}>
-              Queue
+              Editorial review
             </Link>
           )}
           <Link href={`/dashboard/drafts/${article.id}/preview`} className={styles.link}>
@@ -99,13 +107,15 @@ export default async function ReviewArticlePage({ params }: PageProps) {
           </Link>
         </div>
         <p className={styles.meta}>
-          <span>{WORKFLOW_LABELS[article.workflowStatus]}</span>
+          <StatusPill tone="accent">{WORKFLOW_LABELS[article.workflowStatus]}</StatusPill>
           {assignment && (
             <>
-              <span>·</span>
               <span>Round {assignment.round.roundNumber}</span>
               <span>·</span>
-              <span>{assignment.status}</span>
+              <span>
+                {reviewDecisionLabel(assignment.decision) ??
+                  assignmentStatusLabel(assignment.status)}
+              </span>
             </>
           )}
         </p>
@@ -118,10 +128,11 @@ export default async function ReviewArticlePage({ params }: PageProps) {
       <ReviewInteractive
         articleId={article.id}
         comments={serializableComments}
+        blockLabels={buildBlockLabels(article.body)}
         canComment={canComment}
         canDecide={canDecide}
         currentUserId={user.id}
-        isEditor={canManageReviewQueue(user.roles)}
+        isEditor={canManageReviewQueue(user.permissions)}
       >
         <ArticleBody
           blocks={article.body}

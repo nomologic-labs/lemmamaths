@@ -43,6 +43,5 @@ npm run typecheck
 - Vercel project linking
 - Custom domain
 - Analytics
-- Environment-specific secrets (none required for V0.1 mock data)
 
-`metadataBase` in `src/app/layout.tsx` uses a placeholder origin (`https://lemma.example`) until a real site URL is chosen.
+`metadataBase` in `src/app/layout.tsx` comes from `resolveMetadataBase()` (`src/lib/site-url.ts`): `AUTH_URL` if set, otherwise the Vercel deployment host, otherwise `http://localhost:3000`. Set `AUTH_URL` to the real public origin in production.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ArticleBlock } from "@/data/types";
 import { createBlockId } from "@/lib/articles/block-ids";
 import { CODE_LANGUAGES } from "@/lib/articles/editor-types";
@@ -154,87 +155,12 @@ export function BlockEditor({ block, articleId, uploadsEnabled, onChange }: Bloc
 
     case "figure":
       return (
-        <div className={styles.stack}>
-          <label className={styles.field}>
-            <span className={styles.label}>Alt text</span>
-            <input
-              className={styles.input}
-              value={block.alt}
-              onChange={(event) => onChange({ ...block, alt: event.target.value })}
-            />
-          </label>
-          {uploadsEnabled ? (
-            <label className={styles.field}>
-              <span className={styles.label}>Upload image (PNG or JPEG, max 5 MB)</span>
-              <input
-                className={styles.file}
-                type="file"
-                accept="image/png,image/jpeg"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  const formData = new FormData();
-                  formData.set("file", file);
-                  const response = await fetch(`/api/articles/${articleId}/upload-image`, {
-                    method: "POST",
-                    body: formData,
-                  });
-                  const payload = (await response.json()) as { src?: string; error?: string };
-                  if (!response.ok || !payload.src) {
-                    alert(payload.error ?? "Upload failed.");
-                    return;
-                  }
-                  onChange({ ...block, src: payload.src });
-                }}
-              />
-            </label>
-          ) : (
-            <p className={styles.hint}>
-              Image upload is disabled in this environment (not durable on Vercel). Use a
-              path under <code>/figures/</code> for checked-in assets.
-            </p>
-          )}
-          <label className={styles.field}>
-            <span className={styles.label}>Image path</span>
-            <input
-              className={styles.input}
-              value={block.src}
-              placeholder="/figures/example.png"
-              onChange={(event) => onChange({ ...block, src: event.target.value })}
-            />
-          </label>
-          {block.src && (
-            <p className={styles.hint}>
-              Current image: <code>{block.src}</code>
-            </p>
-          )}
-          <div className={styles.row}>
-            <label className={styles.field}>
-              <span className={styles.label}>Width (px)</span>
-              <input
-                className={styles.input}
-                type="number"
-                min={1}
-                value={block.width}
-                onChange={(event) =>
-                  onChange({ ...block, width: Number(event.target.value) || 1 })
-                }
-              />
-            </label>
-            <label className={styles.field}>
-              <span className={styles.label}>Height (px)</span>
-              <input
-                className={styles.input}
-                type="number"
-                min={1}
-                value={block.height}
-                onChange={(event) =>
-                  onChange({ ...block, height: Number(event.target.value) || 1 })
-                }
-              />
-            </label>
-          </div>
-        </div>
+        <FigureBlockEditor
+          block={block}
+          articleId={articleId}
+          uploadsEnabled={uploadsEnabled}
+          onChange={onChange}
+        />
       );
 
     case "code":
@@ -280,26 +206,163 @@ export function BlockEditor({ block, articleId, uploadsEnabled, onChange }: Bloc
     case "list":
       return (
         <p className={styles.unsupported}>
-          List blocks are not editable in this version. Convert to paragraphs or delete this
-          block.
+          Lists cannot be edited yet. This list will still publish as it is — to change it,
+          rewrite it as paragraphs and delete this block.
         </p>
       );
 
     case "quote":
       return (
-        <label className={styles.field}>
-          <span className={styles.label}>Quote</span>
-          <textarea
-            className={styles.textarea}
-            value={paragraphToText(block.content)}
-            onChange={(event) =>
-              onChange({ ...block, content: textToParagraph(event.target.value) })
-            }
-            rows={3}
-          />
-        </label>
+        <div className={styles.stack}>
+          <label className={styles.field}>
+            <span className={styles.label}>Quote</span>
+            <textarea
+              className={styles.textarea}
+              value={paragraphToText(block.content)}
+              onChange={(event) =>
+                onChange({ ...block, content: textToParagraph(event.target.value) })
+              }
+              rows={3}
+            />
+          </label>
+          <label className={styles.field}>
+            <span className={styles.label}>Attribution (optional)</span>
+            <input
+              className={styles.input}
+              value={block.attribution ?? ""}
+              onChange={(event) =>
+                onChange({ ...block, attribution: event.target.value || undefined })
+              }
+            />
+          </label>
+        </div>
       );
   }
+}
+
+function FigureBlockEditor({
+  block,
+  articleId,
+  uploadsEnabled,
+  onChange,
+}: {
+  block: Extract<ArticleBlock, { kind: "figure" }>;
+  articleId: string;
+  uploadsEnabled: boolean;
+  onChange: (block: ArticleBlock) => void;
+}) {
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleUpload(file: File) {
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      const response = await fetch(`/api/articles/${articleId}/upload-image`, {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await response.json()) as { src?: string; error?: string };
+      if (!response.ok || !payload.src) {
+        setUploadError(payload.error ?? "Upload failed. The image was not attached.");
+        return;
+      }
+      onChange({ ...block, src: payload.src });
+    } catch {
+      setUploadError("Upload failed. Check your connection and try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className={styles.stack}>
+      <label className={styles.field}>
+        <span className={styles.label}>Alt text (described for screen readers)</span>
+        <input
+          className={styles.input}
+          value={block.alt}
+          onChange={(event) => onChange({ ...block, alt: event.target.value })}
+        />
+      </label>
+      {uploadsEnabled ? (
+        <label className={styles.field}>
+          <span className={styles.label}>Upload image (PNG or JPEG, max 5 MB)</span>
+          <input
+            className={styles.file}
+            type="file"
+            accept="image/png,image/jpeg"
+            disabled={uploading}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void handleUpload(file);
+            }}
+          />
+        </label>
+      ) : (
+        <p className={styles.hint}>
+          Image upload is disabled in this environment (not durable on Vercel). Use a
+          path under <code>/figures/</code> for checked-in assets.
+        </p>
+      )}
+      {uploading && <p className={styles.hint}>Uploading…</p>}
+      {uploadError && (
+        <p className={styles.error} role="alert">
+          {uploadError}
+        </p>
+      )}
+      <label className={styles.field}>
+        <span className={styles.label}>Image path</span>
+        <input
+          className={styles.input}
+          value={block.src}
+          placeholder="/figures/example.png"
+          onChange={(event) => onChange({ ...block, src: event.target.value })}
+        />
+      </label>
+      {block.src && (
+        <p className={styles.hint}>
+          Current image: <code>{block.src}</code>
+        </p>
+      )}
+      <label className={styles.field}>
+        <span className={styles.label}>Caption (optional)</span>
+        <input
+          className={styles.input}
+          value={block.caption ? paragraphToText(block.caption) : ""}
+          placeholder="Shown under the image as “Figure 1. …”"
+          onChange={(event) => {
+            const text = event.target.value;
+            onChange({ ...block, caption: text ? textToParagraph(text) : undefined });
+          }}
+        />
+      </label>
+      <div className={styles.row}>
+        <label className={styles.field}>
+          <span className={styles.label}>Width (px)</span>
+          <input
+            className={styles.input}
+            type="number"
+            min={1}
+            value={block.width}
+            onChange={(event) => onChange({ ...block, width: Number(event.target.value) || 1 })}
+          />
+        </label>
+        <label className={styles.field}>
+          <span className={styles.label}>Height (px)</span>
+          <input
+            className={styles.input}
+            type="number"
+            min={1}
+            value={block.height}
+            onChange={(event) => onChange({ ...block, height: Number(event.target.value) || 1 })}
+          />
+        </label>
+      </div>
+    </div>
+  );
 }
 
 function NestedParagraphEditor({

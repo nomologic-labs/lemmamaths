@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ARTICLES, ARTICLE_SUMMARIES, getArticle } from "../../src/data/articles";
 import { AUTHORS } from "../../src/data/authors";
-import { formatAuthorNames } from "../../src/lib/articles/author-display";
+import { authorsForByline, formatAuthorNames } from "../../src/lib/articles/author-display";
 import { filterArticles, parseArchiveQuery } from "../../src/lib/articles/query";
 import type { ArticleSummary } from "../../src/data/types";
 
@@ -60,6 +60,23 @@ describe("public visibility semantics (pure)", () => {
     assert.equal(formatAuthorNames(["unknown-handle"]), "unknown-handle");
     assert.doesNotMatch(names, /@/);
     assert.doesNotMatch(names, /[0-9a-f]{8}-[0-9a-f]{4}/i);
+  });
+
+  it("bylines fall back to a public handle and never invent or print internal ids", () => {
+    const fromHandle = authorsForByline(["nadia-okonkwo"]);
+    assert.deepEqual(fromHandle, [{ id: "nadia-okonkwo", name: "@nadia-okonkwo" }]);
+
+    const fromOverrides = authorsForByline(
+      ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"],
+      [{ id: "nadia-okonkwo", name: "Nadia Okonkwo", href: "/authors/nadia-okonkwo" }],
+    );
+    assert.equal(fromOverrides[0]?.name, "Nadia Okonkwo");
+
+    const skippedInternal = authorsForByline(["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
+    assert.deepEqual(skippedInternal, []);
+
+    const emptyOverrides = authorsForByline(["nadia-okonkwo"], []);
+    assert.equal(emptyOverrides[0]?.name, "@nadia-okonkwo");
   });
 });
 

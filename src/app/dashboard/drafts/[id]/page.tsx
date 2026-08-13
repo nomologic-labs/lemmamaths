@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Container } from "@/components/ui/Container";
-import {
-  ArticleEditor,
-  metadataFromArticle,
-  toEditorBlocks,
-} from "@/components/editor/ArticleEditor";
+import { ArticleEditor } from "@/components/editor/ArticleEditor";
+import { metadataFromArticle, toEditorBlocks } from "@/lib/articles/editor-types";
 import { AuthorFeedbackPanel } from "@/components/review/AuthorFeedbackPanel";
 import {
   canEditArticleRecord,
@@ -15,6 +12,7 @@ import {
   isArticleAuthor,
 } from "@/lib/articles/access";
 import { collectBlockIds } from "@/lib/articles/block-ids";
+import { buildBlockLabels } from "@/lib/articles/block-labels";
 import { canResolveReviewComment, canViewReviewFeedback } from "@/lib/articles/review-access";
 import { listCommentsForArticle } from "@/lib/articles/review-store";
 import { areLocalUploadsEnabled } from "@/lib/articles/local-uploads";
@@ -41,18 +39,18 @@ export default async function DraftEditorPage({ params }: PageProps) {
   if (!user.handle) redirect(`/onboarding/handle?callbackUrl=/dashboard/drafts/${id}`);
 
   const article = await getArticleById(id);
-  if (!article || !canReadArticle(user.roles, user.id, toAccessRecord(article))) {
+  if (!article || !canReadArticle(user.permissions, user.id, toAccessRecord(article))) {
     notFound();
   }
 
-  if (!canEditArticleRecord(user.roles, user.id, toAccessRecord(article))) {
+  if (!canEditArticleRecord(user.permissions, user.id, toAccessRecord(article))) {
     redirect(`/dashboard/drafts/${id}/preview`);
   }
 
   const eligibleAuthors = await listEligibleAuthors();
   const access = toAccessRecord(article);
   const comments =
-    canViewReviewFeedback(user.roles, user.id, access) &&
+    canViewReviewFeedback(user.permissions, user.id, access) &&
     (article.workflowStatus === "REVISION_REQUESTED" ||
       article.workflowStatus === "UNDER_REVIEW" ||
       article.workflowStatus === "RESUBMITTED" ||
@@ -65,11 +63,12 @@ export default async function DraftEditorPage({ params }: PageProps) {
       {comments.length > 0 && (
         <AuthorFeedbackPanel
           comments={comments}
+          blockLabels={buildBlockLabels(article.body)}
           canResolve={
             isArticleAuthor(user.id, access) ||
             comments.some((comment) =>
               canResolveReviewComment({
-                roles: user.roles,
+                permissions: user.permissions,
                 userId: user.id,
                 commentAuthorId: comment.authorUserId,
                 article: access,
@@ -84,8 +83,8 @@ export default async function DraftEditorPage({ params }: PageProps) {
         initialBlocks={toEditorBlocks(article.body)}
         workflowStatus={article.workflowStatus}
         eligibleAuthors={eligibleAuthors}
-        canEditFeatured={canSetFeatured(user.roles)}
-        canSubmit={canSubmitArticle(user.roles, user.id, toAccessRecord(article))}
+        canEditFeatured={canSetFeatured(user.permissions)}
+        canSubmit={canSubmitArticle(user.permissions, user.id, toAccessRecord(article))}
         lastSavedAt={article.updatedAt.toISOString()}
         uploadsEnabled={areLocalUploadsEnabled()}
       />

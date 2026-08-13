@@ -5,9 +5,9 @@ import { auth } from "@/auth";
 import { canEditArticleRecord } from "@/lib/articles/access";
 import { getArticleById, toAccessRecord } from "@/lib/articles/store";
 import { hasDatabaseUrl } from "@/lib/db/client";
-import type { LemmaRole, Permission } from "./permissions";
-import { hasPermission, permissionsForRoles } from "./permissions";
-import { loadRolesForUser } from "./roles";
+import type { AccountRole, AccountStatus, Permission } from "./permissions";
+import { hasPermission, permissionsForAccount } from "./permissions";
+import { loadAccountForUser } from "./roles";
 
 export class AuthorizationError extends Error {
   readonly code: "UNAUTHENTICATED" | "FORBIDDEN";
@@ -24,7 +24,8 @@ export type AuthenticatedUser = {
   handle: string | null;
   email: string | null;
   name: string | null;
-  roles: LemmaRole[];
+  accountRole: AccountRole;
+  accountStatus: AccountStatus;
   permissions: ReadonlySet<Permission>;
 };
 
@@ -35,15 +36,17 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const roles = await loadRolesForUser(session.user.id);
+  const account = await loadAccountForUser(session.user.id);
+  const permissions = permissionsForAccount(account.accountRole, account.accountStatus);
 
   return {
     id: session.user.id,
     handle: session.user.handle ?? null,
     email: session.user.email ?? null,
     name: session.user.name ?? null,
-    roles,
-    permissions: permissionsForRoles(roles),
+    accountRole: account.accountRole,
+    accountStatus: account.accountStatus,
+    permissions,
   };
 }
 
@@ -63,10 +66,13 @@ export async function requirePermission(permission: Permission): Promise<Authent
   return user;
 }
 
-export async function requireRole(role: LemmaRole): Promise<AuthenticatedUser> {
+export async function requireAccountRole(role: AccountRole): Promise<AuthenticatedUser> {
   const user = await requireSession();
-  if (!user.roles.includes(role)) {
-    throw new AuthorizationError("FORBIDDEN", `Missing role: ${role}`);
+  if (user.accountRole !== role) {
+    throw new AuthorizationError("FORBIDDEN", `Missing account role: ${role}`);
+  }
+  if (user.accountStatus !== "active") {
+    throw new AuthorizationError("FORBIDDEN", "Account is not active.");
   }
   return user;
 }
@@ -84,14 +90,15 @@ export async function canEditArticle(
   articleId: string,
   context?: ArticleEditContext,
 ): Promise<boolean> {
-  const roles = await loadRolesForUser(userId);
+  const account = await loadAccountForUser(userId);
+  const permissions = permissionsForAccount(account.accountRole, account.accountStatus);
   const article = await getArticleById(articleId);
 
   if (article) {
-    return canEditArticleRecord(roles, userId, toAccessRecord(article));
+    return canEditArticleRecord(permissions, userId, toAccessRecord(article));
   }
 
-  if (hasPermission(roles, "article:edit:any")) {
+  if (hasPermission(permissions, "article:edit:any")) {
     return true;
   }
 
@@ -99,14 +106,7 @@ export async function canEditArticle(
     return false;
   }
 
-  if (hasPermission(roles, "article:edit:own") && context.ownerId === userId) {
-    return true;
-  }
-
-  if (
-    hasPermission(roles, "article:edit:assigned") &&
-    context.assignedReviewerIds?.includes(userId)
-  ) {
+  if (hasPermission(permissions, "article:edit:own") && context.ownerId === userId) {
     return true;
   }
 

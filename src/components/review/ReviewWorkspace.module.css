@@ -1,5 +1,5 @@
 .page {
-  padding-block: var(--space-5) var(--space-9);
+  padding-block: var(--space-7) var(--space-9);
 }
 
 .toolbar {
@@ -16,22 +16,43 @@
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-4);
 }
 
 .link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-family: var(--font-ui);
   font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
   color: var(--accent);
+}
+
+.backLink {
+  margin-top: var(--space-7);
+  font-size: var(--text-base);
+}
+
+/* The archive's back link points its arrow at the page it returns to; the dashboard
+   pages now do the same rather than prefixing the label with a literal arrow. */
+.linkBack svg,
+.backLink svg {
+  transform: rotate(180deg);
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
 }
 
 .layout {
@@ -39,7 +60,7 @@
   gap: var(--space-6);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 60rem) {
   .layout {
     grid-template-columns: minmax(0, 1fr) min(22rem, 34%);
     align-items: start;
@@ -53,9 +74,11 @@
 .sidebar {
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-4);
+  align-content: start;
+  padding: var(--space-5);
+  background: var(--surface-raised);
   border: 1px solid var(--rule-hairline);
-  background: color-mix(in srgb, var(--surface-page) 92%, var(--accent) 8%);
+  border-radius: var(--radius-sm);
 }
 
 .sidebarTitle {
@@ -70,21 +93,26 @@
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-base);
-  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
 }
+
+/* ---- The manuscript, block by block ---- */
 
 .blockChrome {
   position: relative;
   margin-block: var(--space-3);
   padding: var(--space-3);
   border: 1px solid transparent;
-  border-radius: 2px;
-  transition: border-color 160ms ease, background-color 160ms ease;
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .blockChrome[data-has-comments="true"] {
   border-color: color-mix(in srgb, var(--accent) 35%, var(--rule-hairline));
-  background: color-mix(in srgb, var(--surface-page) 94%, var(--accent) 6%);
+  background: var(--accent-wash);
 }
 
 .blockChrome[data-active="true"] {
@@ -94,47 +122,84 @@
 .blockActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
   margin-top: var(--space-2);
 }
+
+/* ---- Controls ---- */
 
 .chip,
 .button,
 .buttonPrimary,
 .buttonQuiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   font-family: var(--font-ui);
   font-size: var(--text-sm);
-  border-radius: 2px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
 }
 
 .chip,
 .buttonQuiet {
-  padding: 0.2rem 0.55rem;
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-3);
   color: var(--accent);
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
+.chip:hover:not(:disabled),
+.buttonQuiet:hover:not(:disabled) {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+}
+
+.button,
+.buttonPrimary {
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-4);
+}
+
 .button {
-  padding: 0.4rem 0.75rem;
   color: var(--text-primary);
   background: transparent;
-  border: 1px solid var(--rule-hairline);
+  border: 1px solid var(--rule-soft);
+}
+
+.button:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .buttonPrimary {
-  padding: 0.45rem 0.85rem;
   color: var(--accent-contrast);
   background: var(--accent);
   border: 1px solid var(--accent);
 }
 
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.chip:disabled,
 .button:disabled,
-.buttonPrimary:disabled {
+.buttonPrimary:disabled,
+.buttonQuiet:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* ---- Comments ---- */
 
 .commentList {
   display: grid;
@@ -145,9 +210,12 @@
 }
 
 .comment {
-  padding: var(--space-3);
-  border: 1px solid var(--rule-hairline);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
   background: var(--surface-page);
+  border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-sm);
 }
 
 .comment[data-orphaned="true"] {
@@ -158,27 +226,30 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
 }
 
 .commentBody {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--text-base);
-  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
   white-space: pre-wrap;
 }
 
 .orphanNote {
-  margin: 0 0 var(--space-2);
+  margin: 0;
   font-family: var(--font-ui);
   font-size: var(--text-sm);
+  line-height: var(--leading-ui);
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* ---- Forms ---- */
 
 .form {
   display: grid;
@@ -189,34 +260,66 @@
 .select,
 .input {
   width: 100%;
-  padding: 0.55rem 0.7rem;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
   font-family: var(--font-body);
   font-size: var(--text-base);
+  line-height: var(--leading-normal);
   color: var(--text-primary);
   background: var(--surface-page);
-  border: 1px solid var(--rule-hairline);
-  border-radius: 2px;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
+  /* The label above is set in small caps and these controls are nested inside it, so
+     the caps treatment has to be turned off again on the control itself. */
+  text-transform: none;
+  letter-spacing: var(--tracking-normal);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.textarea:focus,
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
 }
 
 .label {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
 .error {
   margin: 0;
+  padding: var(--space-3) var(--space-4);
   font-family: var(--font-ui);
   font-size: var(--text-sm);
-  color: #8b1e1e;
+  line-height: var(--leading-ui);
+  color: var(--danger);
+  background: var(--danger-wash);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 .decisionRow {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/* ---- Queues ---- */
+
+.queueWrap {
+  display: grid;
+  gap: var(--space-4);
 }
 
 .queueList,
@@ -234,7 +337,7 @@
 .assignedItem {
   display: grid;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-5);
   background: var(--surface-page);
 }
 
@@ -247,22 +350,29 @@
 
 .itemTitle a {
   color: var(--text-primary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.itemTitle a:hover {
+  color: var(--accent);
 }
 
 .itemMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: 0;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0 0;
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-ui);
+  color: var(--text-faint);
 }
 
 .itemActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-2) var(--space-3);
   align-items: center;
 }
 
@@ -270,19 +380,24 @@
   max-width: var(--measure-prose);
   font-family: var(--font-body);
   font-size: var(--text-md);
+  line-height: var(--leading-normal);
   color: var(--text-secondary);
 }
 
 .feedbackPanel {
+  display: grid;
+  gap: var(--space-3);
   margin-bottom: var(--space-5);
-  padding: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-raised);
   border: 1px solid var(--rule-hairline);
-  background: color-mix(in srgb, var(--surface-page) 92%, var(--accent) 8%);
+  border-radius: var(--radius-sm);
 }
 
 .feedbackTitle {
-  margin: 0 0 var(--space-3);
+  margin: 0;
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 500;
+  color: var(--text-primary);
 }

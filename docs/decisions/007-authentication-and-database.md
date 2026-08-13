@@ -34,7 +34,7 @@ Lemma distinguishes four layers of identity:
 | Google account | Authentication identity (OAuth subject, managed by Google) | Proving who signed in |
 | Lemma `users` row | Application identity (internal UUID, email, handle) | Account ownership, audit trails |
 | `author_profiles` row | Public publishing identity (bio, affiliation, interests) | What readers see on `/authors/[handle]` |
-| `user_roles` rows | Authorization capabilities | What a signed-in user may do server-side |
+| `user_roles` rows | Authorization capabilities (deprecated — see Decision 011) | What a signed-in user may do server-side |
 
 **A contributor's Google display name must not become the authoritative public Lemma author identity.**
 

@@ -1,7 +1,8 @@
 import "server-only";
 
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { userRoles } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 
 export type BootstrapAdminOptions = {
   /**
@@ -13,7 +14,7 @@ export type BootstrapAdminOptions = {
 };
 
 /**
- * Grants the `admin` role when the authenticated Google email matches
+ * Grants administrator + active when the authenticated Google email matches
  * `LEMMA_BOOTSTRAP_ADMIN_EMAIL`. Idempotent and server-side only.
  *
  * Never grant admin based on display name, domain, or client input.
@@ -34,11 +35,11 @@ export async function bootstrapAdminIfEligible(
   if (options?.providerEmailVerified !== true) return;
 
   await db
-    .insert(userRoles)
-    .values({
-      userId,
-      role: "admin",
-      grantedBy: null,
+    .update(users)
+    .set({
+      accountRole: "administrator",
+      accountStatus: "active",
+      updatedAt: new Date(),
     })
-    .onConflictDoNothing({ target: [userRoles.userId, userRoles.role] });
+    .where(eq(users.id, userId));
 }

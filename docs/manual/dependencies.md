@@ -50,4 +50,4 @@ npm run test:publishing   # public visibility semantics + seed fixture integrity
 npm run test:url-policy   # href/figure URL allowlist
 ```
 
-Migrations through `0006_publishing_fields` require a configured `DATABASE_URL`. Without it, seed/migrate and live DB-backed public reads cannot be verified locally.
+Migrations through `0007_account_role_status` require a configured `DATABASE_URL`. Without it, seed/migrate and live DB-backed public reads cannot be verified locally.

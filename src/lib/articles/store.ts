@@ -9,7 +9,7 @@ import {
   articleRevisions,
   articles,
 } from "@/lib/db/articles-schema";
-import { users, userRoles } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import type { ArticleWorkflowStatus } from "./workflow";
 import { createBlockId, ensureBlockIds } from "./block-ids";
 import { estimateReadingMinutes } from "./reading-time";
@@ -386,8 +386,7 @@ export async function listEligibleAuthors(): Promise<EligibleAuthor[]> {
       name: users.name,
     })
     .from(users)
-    .innerJoin(userRoles, eq(userRoles.userId, users.id))
-    .where(isNotNull(users.handle));
+    .where(and(isNotNull(users.handle), eq(users.accountStatus, "active")));
 
   const byId = new Map<string, EligibleAuthor>();
   for (const row of rows) {
@@ -412,11 +411,13 @@ export async function getAuthorDisplays(
     .where(inArray(users.id, authorUserIds));
 
   const byId = new Map(rows.map((row) => [row.id, row]));
-  return authorUserIds.map((id) => {
+  return authorUserIds.flatMap((id) => {
     const row = byId.get(id);
-    const handle = row?.handle ?? "author";
-    const name = row?.name ?? `@${handle}`;
-    return { id: handle, name };
+    if (!row) return [];
+    const handle = row.handle?.trim() || null;
+    const name = row.name?.trim() || (handle ? `@${handle}` : null);
+    if (!handle || !name) return [];
+    return [{ id: handle, name }];
   });
 }
 

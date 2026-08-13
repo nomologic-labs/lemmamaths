@@ -49,7 +49,7 @@ export async function POST(
       return NextResponse.json({ error: "Article not found." }, { status: 404 });
     }
 
-    if (!canEditArticleRecord(user.roles, user.id, toAccessRecord(article))) {
+    if (!canEditArticleRecord(user.permissions, user.id, toAccessRecord(article))) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 

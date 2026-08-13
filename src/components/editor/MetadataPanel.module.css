@@ -2,7 +2,7 @@
   display: grid;
   gap: var(--space-4);
   align-content: start;
-  padding: var(--space-4);
+  padding: var(--space-5);
   background: var(--surface-raised);
   border: 1px solid var(--rule-hairline);
   border-radius: var(--radius-sm);
@@ -10,6 +10,8 @@
 
 .heading {
   margin: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--rule-hairline);
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 500;
@@ -34,17 +36,35 @@
   color: var(--text-faint);
 }
 
+/* Field labels are terse by design; the hint carries the explanation, so a writer who
+   has not published before does not have to guess what a standfirst is. */
+.hint {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  line-height: var(--leading-ui);
+  color: var(--text-muted);
+}
+
 .input,
 .select,
 .textarea {
   width: 100%;
+  min-height: var(--control-height);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-body);
   font-size: var(--text-base);
   color: var(--text-primary);
   background: var(--surface-page);
-  border: 1px solid var(--rule-hairline);
+  border: 1px solid var(--rule-soft);
   border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.textarea {
+  line-height: var(--leading-normal);
 }
 
 .input:focus,
@@ -61,18 +81,41 @@
   gap: var(--space-2);
 }
 
+/* Topic chips are a selection control, so they keep the pill shape the archive uses for
+   an applied filter rather than the square shape of a command. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: 0.2rem var(--space-3);
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  background: var(--surface-page);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: transparent;
   border: 1px solid var(--rule-hairline);
   border-radius: var(--radius-pill);
   cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* The same "applied filter" mark the archive uses, so a selected topic reads the same
+   way whether you are writing an article or looking for one. */
+.chip:has(input:checked) {
+  color: var(--accent);
+  background: var(--accent-wash);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.chip input {
+  accent-color: var(--accent);
 }
 
 .checkbox {
@@ -82,4 +125,8 @@
   font-family: var(--font-ui);
   font-size: var(--text-sm);
   color: var(--text-secondary);
+}
+
+.checkbox input {
+  accent-color: var(--accent);
 }

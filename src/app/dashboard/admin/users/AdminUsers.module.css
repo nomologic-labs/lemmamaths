@@ -1,10 +1,27 @@
+.page {
+  padding-block: var(--space-7) var(--space-9);
+}
+
+.intro {
+  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--leading-prose);
+  color: var(--text-secondary);
+}
+
 .tableWrap {
   overflow-x: auto;
   border: 1px solid var(--rule-hairline);
+  border-radius: var(--radius-sm);
 }
 
 .table {
   width: 100%;
+  /* Below this the manage column's inline forms collapse onto each other; the wrapper
+     scrolls instead, which is the same bargain the code blocks make. */
+  min-width: 44rem;
   border-collapse: collapse;
   font-family: var(--font-ui);
   font-size: var(--text-sm);
@@ -13,8 +30,12 @@
 .table th {
   text-align: left;
   padding: var(--space-3) var(--space-4);
-  font-weight: 500;
-  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
   border-bottom: 1px solid var(--rule-hairline);
   background: var(--surface-raised);
 }
@@ -22,12 +43,18 @@
 .cell {
   vertical-align: top;
   padding: var(--space-4);
+  line-height: var(--leading-ui);
   border-bottom: 1px solid var(--rule-hairline);
+}
+
+.table tr:last-child .cell {
+  border-bottom: none;
 }
 
 .handle {
   display: block;
   color: var(--text-primary);
+  font-weight: 500;
 }
 
 .email {
@@ -49,55 +76,89 @@
   align-items: center;
 }
 
-.select {
-  min-height: 2rem;
+.input {
+  min-width: 0;
+  flex: 1 1 8rem;
+  min-height: var(--control-height-sm);
   padding: var(--space-1) var(--space-2);
   font-family: var(--font-ui);
   font-size: var(--text-sm);
   color: var(--text-primary);
   background: var(--surface-page);
   border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+/* Every control in this column is one of many equal-weight administrative actions, so
+   none of them is drawn as the page's primary button. */
 .button {
-  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height-sm);
   padding-inline: var(--space-3);
   font-family: var(--font-ui);
   font-size: var(--text-sm);
-  color: var(--text-on-accent);
-  background: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 80%, var(--text-primary));
+  font-weight: 500;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.button:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .feedback {
   margin: var(--space-2) 0 0;
+  flex-basis: 100%;
   color: var(--text-secondary);
   font-size: var(--text-xs);
+  line-height: var(--leading-ui);
 }
 
 .hint {
   margin: var(--space-2) 0 0;
   color: var(--text-muted);
   font-size: var(--text-xs);
-}
-
-.page {
-  padding-block: var(--space-6) var(--space-9);
-}
-
-.intro {
-  max-width: var(--measure-prose);
-  margin: 0 0 var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-md);
-  line-height: var(--leading-prose);
-  color: var(--text-secondary);
+  line-height: var(--leading-ui);
 }
 
 .back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-top: var(--space-6);
   font-family: var(--font-ui);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.back:hover {
   color: var(--accent);
+}
+
+.back svg {
+  transform: rotate(180deg);
 }

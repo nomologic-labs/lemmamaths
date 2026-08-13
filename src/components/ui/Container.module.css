@@ -1,5 +1,5 @@
 .container {
-  width: min(100% - 2 * clamp(1.125rem, 5vw, 3rem), var(--container-width, var(--width-page)));
+  width: min(100% - 2 * var(--gutter), var(--container-width, var(--width-page)));
   margin-inline: auto;
 }
 

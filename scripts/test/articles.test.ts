@@ -26,9 +26,12 @@ import {
 import { parseArticleBody, parseSaveDraftInput } from "../../src/lib/articles/validation";
 import { canTransition, getTransition } from "../../src/lib/articles/workflow";
 
-const authorRoles = ["author"] as const;
-const editorRoles = ["editor"] as const;
-const reviewerRoles = ["reviewer"] as const;
+import { permissionsForAccount } from "../../src/lib/auth/permissions";
+
+const contributorPermissions = permissionsForAccount("contributor", "active");
+const administratorPermissions = permissionsForAccount("administrator", "active");
+const reviewerPermissions = contributorPermissions;
+const noPermissions = permissionsForAccount("contributor", "pending");
 
 const draftArticle = {
   id: "11111111-1111-1111-1111-111111111111",
@@ -47,6 +50,15 @@ describe("ArticleBlock ids", () => {
     const entry = createEditorBlock({ kind: "heading", level: 2, text: "Hi" });
     assert.ok(isBlockId(entry.id));
     assert.equal(entry.id, entry.block.id);
+  });
+
+  it("creates a quote block with optional attribution from the Add menu", () => {
+    const block = defaultBlockForKind("quote");
+    assert.equal(block.kind, "quote");
+    assert.ok(isBlockId(block.id));
+    if (block.kind === "quote") {
+      assert.equal(block.attribution, undefined);
+    }
   });
 
   it("preserves ids across toEditorBlocks / stripEditorBlocks / reorder", () => {
@@ -176,7 +188,7 @@ describe("workflow transitions", () => {
 
   it("author can submit own draft and resubmit after revision", () => {
     const submit = canPerformTransition(
-      authorRoles,
+      contributorPermissions,
       draftArticle.createdById,
       draftArticle,
       "SUBMITTED",
@@ -187,19 +199,19 @@ describe("workflow transitions", () => {
     const revision = { ...draftArticle, workflowStatus: "REVISION_REQUESTED" as const };
     assert.equal(submitTargetStatus(revision.workflowStatus), "RESUBMITTED");
     assert.ok(
-      canPerformTransition(authorRoles, draftArticle.createdById, revision, "RESUBMITTED"),
+      canPerformTransition(contributorPermissions, draftArticle.createdById, revision, "RESUBMITTED"),
     );
   });
 
   it("author cannot approve or start review", () => {
     const submitted = { ...draftArticle, workflowStatus: "SUBMITTED" as const };
     assert.equal(
-      canPerformTransition(authorRoles, draftArticle.createdById, submitted, "UNDER_REVIEW"),
+      canPerformTransition(contributorPermissions, draftArticle.createdById, submitted, "UNDER_REVIEW"),
       null,
     );
     const underReview = { ...draftArticle, workflowStatus: "UNDER_REVIEW" as const };
     assert.equal(
-      canPerformTransition(authorRoles, draftArticle.createdById, underReview, "APPROVED"),
+      canPerformTransition(contributorPermissions, draftArticle.createdById, underReview, "APPROVED"),
       null,
     );
   });
@@ -207,23 +219,23 @@ describe("workflow transitions", () => {
   it("editor can start review, request revision, and approve", () => {
     const editorId = "cccccccc-cccc-cccc-cccc-cccccccccccc";
     const submitted = { ...draftArticle, workflowStatus: "SUBMITTED" as const };
-    assert.ok(canPerformTransition(editorRoles, editorId, submitted, "UNDER_REVIEW"));
+    assert.ok(canPerformTransition(administratorPermissions, editorId, submitted, "UNDER_REVIEW"));
 
     const underReview = { ...draftArticle, workflowStatus: "UNDER_REVIEW" as const };
-    assert.ok(canPerformTransition(editorRoles, editorId, underReview, "REVISION_REQUESTED"));
-    assert.ok(canPerformTransition(editorRoles, editorId, underReview, "APPROVED"));
+    assert.ok(canPerformTransition(administratorPermissions, editorId, underReview, "REVISION_REQUESTED"));
+    assert.ok(canPerformTransition(administratorPermissions, editorId, underReview, "APPROVED"));
   });
 
   it("reviewer cannot publish or approve", () => {
     const reviewerId = "dddddddd-dddd-dddd-dddd-dddddddddddd";
     const underReview = { ...draftArticle, workflowStatus: "UNDER_REVIEW" as const };
     assert.equal(
-      canPerformTransition(reviewerRoles, reviewerId, underReview, "APPROVED"),
+      canPerformTransition(reviewerPermissions, reviewerId, underReview, "APPROVED"),
       null,
     );
     const approved = { ...draftArticle, workflowStatus: "APPROVED" as const };
     assert.equal(
-      canPerformTransition(reviewerRoles, reviewerId, approved, "PUBLISHED"),
+      canPerformTransition(reviewerPermissions, reviewerId, approved, "PUBLISHED"),
       null,
     );
   });
@@ -231,7 +243,7 @@ describe("workflow transitions", () => {
   it("unauthorized user cannot mutate workflow", () => {
     const stranger = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee";
     assert.equal(
-      canPerformTransition([], stranger, draftArticle, "SUBMITTED"),
+      canPerformTransition(noPermissions, stranger, draftArticle, "SUBMITTED"),
       null,
     );
     assert.equal(getTransition("DRAFT", "UNDER_REVIEW"), null);
@@ -240,7 +252,7 @@ describe("workflow transitions", () => {
   it("invalid state transition fails", () => {
     const editorId = "cccccccc-cccc-cccc-cccc-cccccccccccc";
     assert.equal(
-      canPerformTransition(editorRoles, editorId, draftArticle, "APPROVED"),
+      canPerformTransition(administratorPermissions, editorId, draftArticle, "APPROVED"),
       null,
     );
   });
@@ -249,14 +261,14 @@ describe("workflow transitions", () => {
 describe("article access control", () => {
   it("owner can read and edit draft", () => {
     const userId = draftArticle.createdById;
-    assert.equal(canReadArticle(authorRoles, userId, draftArticle), true);
-    assert.equal(canEditArticleRecord(authorRoles, userId, draftArticle), true);
+    assert.equal(canReadArticle(contributorPermissions, userId, draftArticle), true);
+    assert.equal(canEditArticleRecord(contributorPermissions, userId, draftArticle), true);
   });
 
   it("non-owner author cannot edit someone else's draft", () => {
     const otherUser = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
-    assert.equal(canReadArticle(authorRoles, otherUser, draftArticle), false);
-    assert.equal(canEditArticleRecord(authorRoles, otherUser, draftArticle), false);
+    assert.equal(canReadArticle(contributorPermissions, otherUser, draftArticle), false);
+    assert.equal(canEditArticleRecord(contributorPermissions, otherUser, draftArticle), false);
   });
 
   it("assigned reviewer can read", () => {
@@ -266,47 +278,47 @@ describe("article access control", () => {
       workflowStatus: "UNDER_REVIEW" as const,
       assignedReviewerIds: [reviewerId],
     };
-    assert.equal(canReadArticle(reviewerRoles, reviewerId, assigned), true);
-    assert.equal(canReadArticle(reviewerRoles, reviewerId, draftArticle), false);
+    assert.equal(canReadArticle(reviewerPermissions, reviewerId, assigned), true);
+    assert.equal(canReadArticle(reviewerPermissions, reviewerId, draftArticle), false);
   });
 
   it("editor can read and edit submitted work", () => {
     const submitted = { ...draftArticle, workflowStatus: "SUBMITTED" as const };
     const editorId = "cccccccc-cccc-cccc-cccc-cccccccccccc";
-    assert.equal(canReadArticle(editorRoles, editorId, submitted), true);
-    assert.equal(canEditArticleRecord(editorRoles, editorId, submitted), true);
+    assert.equal(canReadArticle(administratorPermissions, editorId, submitted), true);
+    assert.equal(canEditArticleRecord(administratorPermissions, editorId, submitted), true);
   });
 
   it("author cannot edit submitted work", () => {
     const submitted = { ...draftArticle, workflowStatus: "SUBMITTED" as const };
     assert.equal(
-      canEditArticleRecord(authorRoles, draftArticle.createdById, submitted),
+      canEditArticleRecord(contributorPermissions, draftArticle.createdById, submitted),
       false,
     );
   });
 
   it("author can submit draft and resubmit after revision", () => {
     assert.equal(
-      canSubmitArticle(authorRoles, draftArticle.createdById, draftArticle),
+      canSubmitArticle(contributorPermissions, draftArticle.createdById, draftArticle),
       true,
     );
     const revision = { ...draftArticle, workflowStatus: "REVISION_REQUESTED" as const };
     assert.equal(submitTargetStatus(revision.workflowStatus), "RESUBMITTED");
-    assert.equal(canSubmitArticle(authorRoles, draftArticle.createdById, revision), true);
+    assert.equal(canSubmitArticle(contributorPermissions, draftArticle.createdById, revision), true);
   });
 
   it("only draft deletions are allowed for authors", () => {
-    assert.equal(canDeleteDraft(authorRoles, draftArticle.createdById, draftArticle), true);
+    assert.equal(canDeleteDraft(contributorPermissions, draftArticle.createdById, draftArticle), true);
     const submitted = { ...draftArticle, workflowStatus: "SUBMITTED" as const };
-    assert.equal(canDeleteDraft(authorRoles, draftArticle.createdById, submitted), false);
+    assert.equal(canDeleteDraft(contributorPermissions, draftArticle.createdById, submitted), false);
   });
 
   it("published articles are immutable through normal draft editing", () => {
     const published = { ...draftArticle, workflowStatus: "PUBLISHED" as const };
     const editorId = "cccccccc-cccc-cccc-cccc-cccccccccccc";
     assert.equal(isPublishedImmutable(published.workflowStatus), true);
-    assert.equal(canEditArticleRecord(authorRoles, draftArticle.createdById, published), false);
-    assert.equal(canEditArticleRecord(editorRoles, editorId, published), false);
+    assert.equal(canEditArticleRecord(contributorPermissions, draftArticle.createdById, published), false);
+    assert.equal(canEditArticleRecord(administratorPermissions, editorId, published), false);
   });
 });
 
@@ -316,42 +328,42 @@ describe("publishing authorization", () => {
 
   it("only editor/admin can approve", () => {
     const underReview = { ...draftArticle, workflowStatus: "UNDER_REVIEW" as const };
-    assert.ok(canPerformTransition(editorRoles, editorId, underReview, "APPROVED"));
+    assert.ok(canPerformTransition(administratorPermissions, editorId, underReview, "APPROVED"));
     assert.equal(
-      canPerformTransition(authorRoles, draftArticle.createdById, underReview, "APPROVED"),
+      canPerformTransition(contributorPermissions, draftArticle.createdById, underReview, "APPROVED"),
       null,
     );
     assert.equal(
-      canPerformTransition(reviewerRoles, "dddddddd-dddd-dddd-dddd-dddddddddddd", underReview, "APPROVED"),
+      canPerformTransition(reviewerPermissions, "dddddddd-dddd-dddd-dddd-dddddddddddd", underReview, "APPROVED"),
       null,
     );
   });
 
   it("only editor/admin can publish approved articles", () => {
-    assert.equal(canPublishArticle(editorRoles, approved), true);
-    assert.ok(canPerformTransition(editorRoles, editorId, approved, "PUBLISHED"));
-    assert.equal(canPublishArticle(authorRoles, approved), false);
-    assert.equal(canPublishArticle(reviewerRoles, approved), false);
+    assert.equal(canPublishArticle(administratorPermissions, approved), true);
+    assert.ok(canPerformTransition(administratorPermissions, editorId, approved, "PUBLISHED"));
+    assert.equal(canPublishArticle(contributorPermissions, approved), false);
+    assert.equal(canPublishArticle(reviewerPermissions, approved), false);
     assert.equal(
-      canPerformTransition(authorRoles, draftArticle.createdById, approved, "PUBLISHED"),
+      canPerformTransition(contributorPermissions, draftArticle.createdById, approved, "PUBLISHED"),
       null,
     );
   });
 
   it("invalid publish transitions fail", () => {
-    assert.equal(canPublishArticle(editorRoles, draftArticle), false);
-    assert.equal(canPerformTransition(editorRoles, editorId, draftArticle, "PUBLISHED"), null);
+    assert.equal(canPublishArticle(administratorPermissions, draftArticle), false);
+    assert.equal(canPerformTransition(administratorPermissions, editorId, draftArticle, "PUBLISHED"), null);
     const underReview = { ...draftArticle, workflowStatus: "UNDER_REVIEW" as const };
-    assert.equal(canPublishArticle(editorRoles, underReview), false);
+    assert.equal(canPublishArticle(administratorPermissions, underReview), false);
     const published = { ...draftArticle, workflowStatus: "PUBLISHED" as const };
-    assert.equal(canPublishArticle(editorRoles, published), false);
-    assert.equal(canPerformTransition(editorRoles, editorId, published, "PUBLISHED"), null);
+    assert.equal(canPublishArticle(administratorPermissions, published), false);
+    assert.equal(canPerformTransition(administratorPermissions, editorId, published, "PUBLISHED"), null);
   });
 
   it("repeated publish from non-APPROVED state is rejected by transition rules", () => {
     const published = { ...draftArticle, workflowStatus: "PUBLISHED" as const };
     assert.equal(getTransition("PUBLISHED", "PUBLISHED"), null);
-    assert.equal(canPerformTransition(editorRoles, editorId, published, "PUBLISHED"), null);
+    assert.equal(canPerformTransition(administratorPermissions, editorId, published, "PUBLISHED"), null);
   });
 
   it("submit and resubmit require the matching source status", () => {

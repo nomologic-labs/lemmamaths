@@ -4,8 +4,13 @@ import { db } from "@/lib/db/client";
 import { auditLog } from "@/lib/db/audit-schema";
 
 export type AuditAction =
-  | "role.granted"
-  | "role.revoked"
+  | "account.approved"
+  | "account.suspended"
+  | "account.restored"
+  | "account.promoted"
+  | "account.demoted"
+  | "account.name_updated"
+  | "account.handle_updated"
   | "article.submitted"
   | "article.resubmitted"
   | "article.review_started"

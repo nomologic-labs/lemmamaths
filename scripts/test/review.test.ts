@@ -18,6 +18,11 @@ import {
 } from "../../src/lib/articles/review-validation";
 import { canTransition } from "../../src/lib/articles/workflow";
 
+import { permissionsForAccount } from "../../src/lib/auth/permissions";
+
+const contributorPermissions = permissionsForAccount("contributor", "active");
+const administratorPermissions = permissionsForAccount("administrator", "active");
+
 const authorId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const reviewerId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const editorId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
@@ -33,44 +38,44 @@ const article = {
 
 describe("reviewer authorization", () => {
   it("reviewer can access assigned article", () => {
-    assert.equal(canReadArticle(["reviewer"], reviewerId, article), true);
-    assert.equal(canReviewAssignedArticle(["reviewer"], reviewerId, article), true);
-    assert.equal(canViewReviewFeedback(["reviewer"], reviewerId, article), true);
+    assert.equal(canReadArticle(contributorPermissions, reviewerId, article), true);
+    assert.equal(canReviewAssignedArticle(contributorPermissions, reviewerId, article), true);
+    assert.equal(canViewReviewFeedback(contributorPermissions, reviewerId, article), true);
   });
 
   it("reviewer cannot access unrelated article", () => {
     const unrelated = { ...article, assignedReviewerIds: [] };
-    assert.equal(canReadArticle(["reviewer"], reviewerId, unrelated), false);
-    assert.equal(canReviewAssignedArticle(["reviewer"], reviewerId, unrelated), false);
+    assert.equal(canReadArticle(contributorPermissions, reviewerId, unrelated), false);
+    assert.equal(canReviewAssignedArticle(contributorPermissions, reviewerId, unrelated), false);
   });
 
   it("author can view feedback on own article but not another author's", () => {
-    assert.equal(canViewReviewFeedback(["author"], authorId, article), true);
+    assert.equal(canViewReviewFeedback(contributorPermissions, authorId, article), true);
     const other = {
       ...article,
       createdById: strangerId,
       authorUserIds: [strangerId],
       assignedReviewerIds: [],
     };
-    assert.equal(canViewReviewFeedback(["author"], authorId, other), false);
+    assert.equal(canViewReviewFeedback(contributorPermissions, authorId, other), false);
   });
 
   it("editor can manage the queue and view all feedback", () => {
-    assert.equal(canManageReviewQueue(["editor"]), true);
-    assert.equal(canViewReviewFeedback(["editor"], editorId, article), true);
-    assert.equal(canReadArticle(["editor"], editorId, article), true);
+    assert.equal(canManageReviewQueue(administratorPermissions), true);
+    assert.equal(canViewReviewFeedback(administratorPermissions, editorId, article), true);
+    assert.equal(canReadArticle(administratorPermissions, editorId, article), true);
   });
 
   it("unauthorized users cannot create comments", () => {
     assert.equal(
-      canCreateReviewComment(["author"], authorId, article, {
+      canCreateReviewComment(contributorPermissions, authorId, article, {
         assignmentActive: false,
         roundOpen: true,
       }),
       false,
     );
     assert.equal(
-      canCreateReviewComment(["reviewer"], strangerId, article, {
+      canCreateReviewComment(contributorPermissions, strangerId, article, {
         assignmentActive: false,
         roundOpen: true,
       }),
@@ -86,9 +91,9 @@ describe("reviewer authorization", () => {
       assignedReviewerIds: [reviewerId],
     };
     assert.equal(canBeAssignedAsReviewer(reviewerId, selfAuthored), false);
-    assert.equal(canReviewAssignedArticle(["reviewer"], reviewerId, selfAuthored), false);
+    assert.equal(canReviewAssignedArticle(contributorPermissions, reviewerId, selfAuthored), false);
     assert.equal(
-      canCreateReviewComment(["reviewer"], reviewerId, selfAuthored, {
+      canCreateReviewComment(contributorPermissions, reviewerId, selfAuthored, {
         assignmentActive: true,
         roundOpen: true,
       }),
@@ -118,7 +123,7 @@ describe("review comments", () => {
   it("editing comment checks ownership", () => {
     assert.equal(
       canEditReviewComment({
-        roles: ["reviewer"],
+        permissions: contributorPermissions,
         userId: reviewerId,
         commentAuthorId: reviewerId,
         article,
@@ -127,7 +132,7 @@ describe("review comments", () => {
     );
     assert.equal(
       canEditReviewComment({
-        roles: ["reviewer"],
+        permissions: contributorPermissions,
         userId: strangerId,
         commentAuthorId: reviewerId,
         article,
@@ -136,7 +141,7 @@ describe("review comments", () => {
     );
     assert.equal(
       canEditReviewComment({
-        roles: ["editor"],
+        permissions: administratorPermissions,
         userId: editorId,
         commentAuthorId: reviewerId,
         article,
@@ -148,7 +153,7 @@ describe("review comments", () => {
   it("resolving comment checks permission", () => {
     assert.equal(
       canResolveReviewComment({
-        roles: ["author"],
+        permissions: contributorPermissions,
         userId: authorId,
         commentAuthorId: reviewerId,
         article,
@@ -157,7 +162,7 @@ describe("review comments", () => {
     );
     assert.equal(
       canResolveReviewComment({
-        roles: ["reviewer"],
+        permissions: contributorPermissions,
         userId: strangerId,
         commentAuthorId: reviewerId,
         article,
@@ -193,16 +198,16 @@ describe("review workflow integration", () => {
 
   it("reviewer cannot perform editor-only transitions", () => {
     assert.equal(
-      canPerformTransition(["reviewer"], reviewerId, article, "APPROVED"),
+      canPerformTransition(contributorPermissions, reviewerId, article, "APPROVED"),
       null,
     );
     assert.equal(
-      canPerformTransition(["reviewer"], reviewerId, article, "REVISION_REQUESTED"),
+      canPerformTransition(contributorPermissions, reviewerId, article, "REVISION_REQUESTED"),
       null,
     );
     const submitted = { ...article, workflowStatus: "SUBMITTED" as const };
     assert.equal(
-      canPerformTransition(["reviewer"], reviewerId, submitted, "UNDER_REVIEW"),
+      canPerformTransition(contributorPermissions, reviewerId, submitted, "UNDER_REVIEW"),
       null,
     );
   });
@@ -223,14 +228,14 @@ describe("review workflow integration", () => {
 
   it("active assignment is required for reviewer decisions", () => {
     assert.equal(
-      canSubmitReviewDecision(["reviewer"], reviewerId, article, {
+      canSubmitReviewDecision(contributorPermissions, reviewerId, article, {
         assignmentActive: true,
         roundOpen: true,
       }),
       true,
     );
     assert.equal(
-      canSubmitReviewDecision(["reviewer"], reviewerId, article, {
+      canSubmitReviewDecision(contributorPermissions, reviewerId, article, {
         assignmentActive: false,
         roundOpen: true,
       }),

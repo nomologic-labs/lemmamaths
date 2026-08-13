@@ -108,8 +108,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
           </div>
         ) : (
           <p className={styles.empty}>
-            Nothing published yet. {author.name.split(" ")[0]} may be refereeing for other
-            authors.
+            Nothing published yet. They may still be reviewing other contributors&apos; articles.
           </p>
         )}
 

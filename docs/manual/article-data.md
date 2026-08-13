@@ -40,7 +40,7 @@ Import with `npm run db:seed` (idempotent by slug; does not create users).
 | `article_revisions` | Intentional body/metadata snapshots (not full VCS) |
 
 Schema: `src/lib/db/articles-schema.ts`  
-Migrations: `drizzle/0003_articles.sql` … `drizzle/0006_publishing_fields.sql`
+Migrations: `drizzle/0003_articles.sql` … `drizzle/0007_account_role_status.sql`
 
 ### Article row fields
 

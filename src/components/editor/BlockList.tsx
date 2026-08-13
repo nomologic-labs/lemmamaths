@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ArticleBlock } from "@/data/types";
+import { BLOCK_KIND_LABELS } from "@/lib/articles/block-labels";
 import {
   BLOCK_MENU_ITEMS,
   createEditorBlock,
@@ -17,18 +18,6 @@ type BlockListProps = {
   articleId: string;
   uploadsEnabled: boolean;
   onChange: (blocks: EditorBlock[]) => void;
-};
-
-const BLOCK_LABELS: Record<ArticleBlock["kind"], string> = {
-  heading: "Heading",
-  paragraph: "Paragraph",
-  math: "Equation",
-  statement: "Statement",
-  proof: "Proof",
-  list: "List",
-  figure: "Image",
-  code: "Code",
-  quote: "Quote",
 };
 
 export function BlockList({ blocks, articleId, uploadsEnabled, onChange }: BlockListProps) {
@@ -71,7 +60,7 @@ export function BlockList({ blocks, articleId, uploadsEnabled, onChange }: Block
       {blocks.map((entry, index) => (
         <section key={entry.id} className={styles.block} data-kind={entry.block.kind}>
           <header className={styles.blockHead}>
-            <span className={styles.blockType}>{BLOCK_LABELS[entry.block.kind]}</span>
+            <span className={styles.blockType}>{BLOCK_KIND_LABELS[entry.block.kind]}</span>
             <div className={styles.blockActions}>
               <button
                 type="button"

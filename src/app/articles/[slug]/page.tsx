@@ -8,7 +8,7 @@ import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { ReviewNote } from "@/components/articles/ReviewNote";
 import { Container } from "@/components/ui/Container";
 import { ArrowRightIcon } from "@/components/ui/icons";
-import { authorLookupToRecord } from "@/lib/articles/author-display";
+import { authorLookupToRecord, resolveAuthorName } from "@/lib/articles/author-display";
 import {
   getPublishedArticle,
   getPublicAuthorNameMap,
@@ -59,12 +59,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   if (!article) notFound();
 
   const authorNames = authorLookupToRecord(nameMap);
-  const authorOverrides = article.authorIds
-    .map((id) => {
-      const name = nameMap.get(id);
-      return name ? { id, name } : null;
-    })
-    .filter((entry): entry is { id: string; name: string } => entry !== null);
+  // Authors without a public profile still get a byline from their handle; only
+  // those with a profile page are linked.
+  const authorOverrides = article.authorIds.map((id) => ({
+    id,
+    name: resolveAuthorName(id, nameMap),
+    href: nameMap.has(id) ? `/authors/${id}` : undefined,
+  }));
 
   const contents: ContentsEntry[] = article.body
     .filter((block) => block.kind === "heading")

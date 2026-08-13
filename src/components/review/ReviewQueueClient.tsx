@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { publishArticleAction } from "@/lib/articles/actions";
 import {
   assignReviewerAction,
@@ -11,7 +12,9 @@ import {
   startArticleReviewAction,
 } from "@/lib/articles/review-actions";
 import type { ReviewQueueItem } from "@/lib/articles/review-store";
+import { assignmentStatusLabel, reviewDecisionLabel } from "@/lib/articles/review-labels";
 import { WORKFLOW_LABELS } from "@/lib/articles/workflow-labels";
+import { StatusPill } from "@/components/ui/StatusPill";
 import styles from "./ReviewWorkspace.module.css";
 
 type EligibleReviewer = { id: string; handle: string; name: string | null };
@@ -23,16 +26,22 @@ export function ReviewQueueClient({
   items: ReviewQueueItem[];
   eligibleReviewers: EligibleReviewer[];
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [selections, setSelections] = useState<Record<string, string>>({});
 
   if (items.length === 0) {
-    return <p className={styles.empty}>No submissions in the editorial queue yet.</p>;
+    return (
+      <p className={styles.empty}>
+        Nothing waiting for editorial review. Articles appear here once a contributor submits
+        them for peer review.
+      </p>
+    );
   }
 
   return (
-    <div>
+    <div className={styles.queueWrap}>
       {error && <p className={styles.error}>{error}</p>}
       <ul className={styles.queueList}>
         {items.map((item) => (
@@ -42,8 +51,7 @@ export function ReviewQueueClient({
                 <Link href={`/dashboard/review/${item.id}`}>{item.title}</Link>
               </h2>
               <p className={styles.itemMeta}>
-                <span>{WORKFLOW_LABELS[item.workflowStatus]}</span>
-                <span>·</span>
+                <StatusPill>{WORKFLOW_LABELS[item.workflowStatus]}</StatusPill>
                 <span>{item.authorHandles.map((handle) => `@${handle}`).join(", ")}</span>
                 <span>·</span>
                 <span>
@@ -64,13 +72,12 @@ export function ReviewQueueClient({
               <p className={styles.itemMeta}>
                 Reviewers:{" "}
                 {item.assignedReviewers.length === 0
-                  ? "none"
+                  ? "none assigned yet"
                   : item.assignedReviewers
                       .map((reviewer) => {
-                        const decision = reviewer.decision
-                          ? ` (${reviewer.decision.replaceAll("_", " ")})`
-                          : "";
-                        return `@${reviewer.handle ?? "user"} [${reviewer.status}]${decision}`;
+                        const decision = reviewDecisionLabel(reviewer.decision);
+                        const state = decision ?? assignmentStatusLabel(reviewer.status);
+                        return `@${reviewer.handle ?? "user"} — ${state}`;
                       })
                       .join("; ")}
               </p>
@@ -108,7 +115,7 @@ export function ReviewQueueClient({
                       reviewerUserId,
                     });
                     if (!result.ok) setError(result.error);
-                    else window.location.reload();
+                    else router.refresh();
                   });
                 }}
               >
@@ -131,7 +138,7 @@ export function ReviewQueueClient({
                           reviewerUserId: reviewer.userId,
                         });
                         if (!result.ok) setError(result.error);
-                        else window.location.reload();
+                        else router.refresh();
                       });
                     }}
                   >
@@ -149,11 +156,11 @@ export function ReviewQueueClient({
                     startTransition(async () => {
                       const result = await startArticleReviewAction(item.id);
                       if (!result.ok) setError(result.error);
-                      else window.location.reload();
+                      else router.refresh();
                     });
                   }}
                 >
-                  Start review
+                  Start peer review
                 </button>
               )}
 
@@ -168,7 +175,7 @@ export function ReviewQueueClient({
                       startTransition(async () => {
                         const result = await editorRequestRevisionAction(item.id);
                         if (!result.ok) setError(result.error);
-                        else window.location.reload();
+                        else router.refresh();
                       });
                     }}
                   >
@@ -183,7 +190,7 @@ export function ReviewQueueClient({
                       startTransition(async () => {
                         const result = await editorApproveArticleAction(item.id);
                         if (!result.ok) setError(result.error);
-                        else window.location.reload();
+                        else router.refresh();
                       });
                     }}
                   >
@@ -202,7 +209,7 @@ export function ReviewQueueClient({
                     startTransition(async () => {
                       const result = await publishArticleAction(item.id);
                       if (!result.ok) setError(result.error);
-                      else window.location.reload();
+                      else router.refresh();
                     });
                   }}
                 >
@@ -215,7 +222,7 @@ export function ReviewQueueClient({
                   Published{item.publishedOn ? ` ${item.publishedOn}` : ""}
                   {" · "}
                   <Link href={`/articles/${item.slug}`} className={styles.link}>
-                    View public article
+                    Read in the archive
                   </Link>
                 </p>
               )}

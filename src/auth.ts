@@ -17,6 +17,7 @@ import { users } from "@/lib/db/schema";
 const databaseConfigured = hasDatabaseUrl();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET,
   ...(databaseConfigured
     ? {
         adapter: DrizzleAdapter(getDb(), {

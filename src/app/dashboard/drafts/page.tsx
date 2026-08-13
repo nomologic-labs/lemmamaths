@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { StatusPill } from "@/components/ui/StatusPill";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import { createDraftAction } from "@/lib/articles/actions";
 import { canEditArticleRecord, canReadArticle } from "@/lib/articles/access";
@@ -14,8 +15,11 @@ import {
 import { getAuthenticatedUser } from "@/lib/auth/guards";
 import { hasPermission } from "@/lib/auth/permissions";
 import { canAccessDashboard } from "@/lib/auth/nav-links";
-import { WORKFLOW_LABELS } from "@/lib/articles/workflow-labels";
-import styles from "./Drafts.module.css";
+import {
+  WORKFLOW_CONTRIBUTOR_HINTS,
+  WORKFLOW_LABELS,
+} from "@/lib/articles/workflow-labels";
+import styles from "../ArticleList.module.css";
 
 export const metadata: Metadata = {
   title: "My drafts",
@@ -26,44 +30,53 @@ export default async function DraftsPage() {
   const user = await getAuthenticatedUser();
   if (!user) redirect("/login?callbackUrl=/dashboard/drafts");
   if (!user.handle) redirect("/onboarding/handle?callbackUrl=/dashboard/drafts");
-  if (!canAccessDashboard(user.roles)) redirect("/dashboard");
+  if (!canAccessDashboard(user.permissions)) redirect("/dashboard");
 
-  const drafts = hasPermission(user.roles, "article:read:any")
-    ? await listAllArticles()
-    : await listDraftsForUser(user.id);
+  const readsEverything = hasPermission(user.permissions, "article:read:any");
+  const articles = readsEverything ? await listAllArticles() : await listDraftsForUser(user.id);
 
-  const visible = drafts.filter((draft) =>
-    canReadArticle(user.roles, user.id, toAccessRecord(draft)),
+  // Published work lives on its own page; this list is only work still in progress.
+  const visible = articles.filter(
+    (article) =>
+      article.workflowStatus !== "PUBLISHED" &&
+      canReadArticle(user.permissions, user.id, toAccessRecord(article)),
   );
 
   return (
     <>
       <PageHeader
         eyebrow="Contribute"
-        title="My drafts"
-        lede="Create and continue work on structured mathematics articles."
+        title={readsEverything ? "All drafts" : "My drafts"}
+        lede={
+          readsEverything
+            ? "Every article still being written or reviewed. Published articles are in the archive."
+            : "Articles you are still writing, and articles you have sent for peer review."
+        }
       />
       <Container className={styles.page}>
         <div className={styles.actions}>
           {user.permissions.has("article:create") && (
             <form action={createDraftAction}>
               <button type="submit" className={styles.newButton}>
-                New article
+                New draft
               </button>
             </form>
           )}
           <Link href="/dashboard" className={styles.back}>
-            Back to dashboard
             <ArrowRightIcon size={16} />
+            Back to dashboard
           </Link>
         </div>
 
         {visible.length === 0 ? (
-          <p className={styles.empty}>No drafts yet. Create a new article to begin writing.</p>
+          <p className={styles.empty}>
+            Nothing in progress. Start a new draft to write an article, then submit it for peer
+            review when it is ready.
+          </p>
         ) : (
           <ul className={styles.list}>
             {visible.map((draft) => {
-              const editable = canEditArticleRecord(user.roles, user.id, toAccessRecord(draft));
+              const editable = canEditArticleRecord(user.permissions, user.id, toAccessRecord(draft));
               return (
                 <li key={draft.id} className={styles.item}>
                   <div className={styles.itemMain}>
@@ -73,8 +86,7 @@ export default async function DraftsPage() {
                       </Link>
                     </h2>
                     <p className={styles.itemMeta}>
-                      <span>{WORKFLOW_LABELS[draft.workflowStatus]}</span>
-                      <span>·</span>
+                      <StatusPill>{WORKFLOW_LABELS[draft.workflowStatus]}</StatusPill>
                       <span>
                         Last saved{" "}
                         {draft.updatedAt.toLocaleString("en-GB", {
@@ -85,6 +97,9 @@ export default async function DraftsPage() {
                           minute: "2-digit",
                         })}
                       </span>
+                    </p>
+                    <p className={styles.itemHint}>
+                      {WORKFLOW_CONTRIBUTOR_HINTS[draft.workflowStatus]}
                     </p>
                   </div>
                   <div className={styles.itemLinks}>

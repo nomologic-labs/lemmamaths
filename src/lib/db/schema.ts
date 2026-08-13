@@ -7,15 +7,12 @@ import {
   pgTable,
   text,
   timestamp,
-  unique,
 } from "drizzle-orm/pg-core";
 import type { TopicId } from "@/data/types";
 
-/**
- * Lemma application roles. Authorization is enforced server-side in a later phase;
- * this enum only defines the persisted role vocabulary.
- */
-export const userRoleEnum = pgEnum("user_role", ["author", "reviewer", "editor", "admin"]);
+export const accountRoleEnum = pgEnum("account_role", ["contributor", "administrator"]);
+
+export const accountStatusEnum = pgEnum("account_status", ["pending", "active", "suspended"]);
 
 /**
  * Application user account.
@@ -26,13 +23,13 @@ export const userRoleEnum = pgEnum("user_role", ["author", "reviewer", "editor",
  *
  * Lemma-specific columns:
  * - `handle` — application-owned public slug (maps to mock `Author.id`, e.g. `nadia-okonkwo`)
+ * - `accountRole` / `accountStatus` — authorization (see Decision 011)
  * - `createdAt` / `updatedAt` — audit timestamps
  *
  * Identity distinction (see docs/decisions/007-authentication-and-database.md):
  * - Google account → authentication identity (via `accounts` in Phase 2)
  * - `users` row → Lemma application identity
  * - `author_profiles` → public publishing identity
- * - `user_roles` → authorization capabilities
  *
  * A contributor's Google display name is stored in `name` for convenience but is NOT the
  * authoritative public Lemma author identity; `handle` and `author_profiles` are.
@@ -47,32 +44,11 @@ export const users = pgTable("users", {
   /** Nullable until assigned during onboarding; unique when set. */
   handle: text("handle").unique(),
   image: text("image"),
+  accountRole: accountRoleEnum("account_role").notNull().default("contributor"),
+  accountStatus: accountStatusEnum("account_status").notNull().default("pending"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
-
-/**
- * Role grants. Users may hold multiple roles. Roles are never assigned automatically
- * on sign-in; an editor or admin grants them explicitly.
- *
- * `user_id` references `users.id` (Lemma application identity), not an OAuth `accounts`
- * row or a session record. Auth.js links providers through `accounts.user_id` → `users.id`.
- */
-export const userRoles = pgTable(
-  "user_roles",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    role: userRoleEnum("role").notNull(),
-    grantedBy: text("granted_by").references(() => users.id, { onDelete: "set null" }),
-    grantedAt: timestamp("granted_at", { mode: "date" }).notNull().defaultNow(),
-  },
-  (table) => [unique("user_roles_user_id_role_unique").on(table.userId, table.role)],
-);
 
 /**
  * Public author profile, one-to-one with a user who publishes on Lemma.
@@ -95,23 +71,10 @@ export const authorProfiles = pgTable("author_profiles", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
 
-export const usersRelations = relations(users, ({ many, one }) => ({
-  roles: many(userRoles),
+export const usersRelations = relations(users, ({ one }) => ({
   authorProfile: one(authorProfiles, {
     fields: [users.id],
     references: [authorProfiles.userId],
-  }),
-}));
-
-export const userRolesRelations = relations(userRoles, ({ one }) => ({
-  user: one(users, {
-    fields: [userRoles.userId],
-    references: [users.id],
-  }),
-  grantedByUser: one(users, {
-    fields: [userRoles.grantedBy],
-    references: [users.id],
-    relationName: "grantedByUser",
   }),
 }));
 

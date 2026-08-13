@@ -1,18 +1,23 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { ReviewCommentView } from "@/lib/articles/review-store";
 import { resolveReviewCommentAction } from "@/lib/articles/review-actions";
 import styles from "./ReviewWorkspace.module.css";
 
 export function AuthorFeedbackPanel({
   comments,
+  blockLabels,
   canResolve,
 }: {
   comments: ReviewCommentView[];
+  blockLabels: Record<string, string>;
   canResolve: boolean;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   if (comments.length === 0) {
     return null;
@@ -22,9 +27,15 @@ export function AuthorFeedbackPanel({
     <section className={styles.feedbackPanel}>
       <h2 className={styles.feedbackTitle}>Reviewer feedback</h2>
       <p className={styles.sidebarBody}>
-        Comments stay attached to block ids. If you deleted a block, its comments appear as
+        Each comment is attached to one block of your article. Mark a comment as addressed once
+        you have made the change. If you deleted the block a comment refers to, it is shown as
         referring to a removed block.
       </p>
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
       <ul className={styles.commentList}>
         {comments.map((comment) => (
           <li
@@ -39,9 +50,13 @@ export function AuthorFeedbackPanel({
               <span>@{comment.authorHandle ?? "reviewer"}</span>
               <span>·</span>
               <span>Round {comment.roundNumber}</span>
-              <span>·</span>
-              <span>{comment.blockId}</span>
-              {comment.resolved && <span>· Resolved</span>}
+              {blockLabels[comment.blockId] ? (
+                <>
+                  <span>·</span>
+                  <span>{blockLabels[comment.blockId]}</span>
+                </>
+              ) : null}
+              {comment.resolved && <span>· Addressed</span>}
             </div>
             <p className={styles.commentBody}>{comment.body}</p>
             {canResolve && (
@@ -50,12 +65,17 @@ export function AuthorFeedbackPanel({
                 className={styles.buttonQuiet}
                 disabled={pending}
                 onClick={() => {
+                  setError(null);
                   startTransition(async () => {
-                    await resolveReviewCommentAction({
+                    const result = await resolveReviewCommentAction({
                       commentId: comment.id,
                       resolved: !comment.resolved,
                     });
-                    window.location.reload();
+                    if (!result.ok) {
+                      setError(result.error);
+                      return;
+                    }
+                    router.refresh();
                   });
                 }}
               >

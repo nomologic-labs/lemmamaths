@@ -25,11 +25,11 @@ export const REVIEW_LABELS: Record<PeerReviewStatus, string> = {
 /** Shown in a tooltip and on the article page, so the badge is never just a colour. */
 export const REVIEW_DESCRIPTIONS: Record<PeerReviewStatus, string> = {
   "peer-reviewed":
-    "Read and checked by at least one student referee before publication, with corrections returned to the author.",
+    "Read and checked by at least one student reviewer before publication, with corrections returned to the author.",
   "editorial-review":
-    "Checked by the editorial team for clarity and accuracy, but not formally refereed. Usual for essays and problem sets.",
+    "Checked by an administrator for clarity and accuracy, but not sent for peer review. Usual for essays and problem sets.",
   "under-review":
-    "Published while refereeing continues. The mathematics may still change.",
+    "Published while peer review continues. The mathematics may still change.",
 };
 
 export const REVIEW_ORDER: readonly PeerReviewStatus[] = [

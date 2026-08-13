@@ -6,7 +6,7 @@ import type { Article, ArticleBlock, InlineNode, StatementVariant } from "@/data
  * Persisted database bodies always carry `id` values. Public mock articles may be
  * authored without ids and are materialized through `materializeArticle`.
  *
- * Future review comments will reference these ids, not array indexes.
+ * Review comments reference these ids, not array indexes.
  */
 
 const BLOCK_ID_PATTERN = /^blk_[a-zA-Z0-9]+$/;

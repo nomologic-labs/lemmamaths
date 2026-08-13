@@ -39,6 +39,13 @@
   --width-narrow: 48rem;
   --drawer-width: 19.5rem;
   --header-height: 4rem;
+  /* The page gutter. Container and the footer both read this so that a footer column
+     lines up with the column above it at every width. */
+  --gutter: clamp(1.125rem, 5vw, 3rem);
+
+  /* ---- Control sizing: two heights for the whole interface, no more ---- */
+  --control-height: 2.5rem;
+  --control-height-sm: 2rem;
 
   /* ---- Type scale (fluid, clamped so it never gets silly at either end) ---- */
   --text-2xs: 0.6875rem;
@@ -56,6 +63,9 @@
   --leading-snug: 1.3;
   --leading-normal: 1.55;
   --leading-prose: 1.72;
+  /* Interface copy sits between snug and normal: tighter than prose because it is read
+     in short runs, looser than snug because it wraps inside narrow panels. */
+  --leading-ui: 1.45;
 
   --tracking-tight: -0.02em;
   --tracking-normal: 0;
@@ -116,6 +126,12 @@
   --accent-wash: rgba(140, 74, 30, 0.08);
   --highlight: #a9762f;
 
+  /* Errors and destructive controls. Kept in the warm family — a brick red rather than
+     a signal red — so a validation message does not read as a foreign element. */
+  --danger: #a32a16;
+  --danger-hover: #83200f;
+  --danger-wash: rgba(163, 42, 22, 0.08);
+
   --rule-hairline: rgba(139, 106, 61, 0.24);
   --rule-soft: rgba(139, 106, 61, 0.38);
   --rule-strong: rgba(120, 88, 46, 0.62);
@@ -157,6 +173,10 @@
   --accent-contrast: #1c0e05;
   --accent-wash: rgba(201, 154, 88, 0.12);
   --highlight: #b8894a;
+
+  --danger: #e0866a;
+  --danger-hover: #eda286;
+  --danger-wash: rgba(224, 134, 106, 0.12);
 
   --rule-hairline: rgba(201, 168, 118, 0.16);
   --rule-soft: rgba(201, 168, 118, 0.28);

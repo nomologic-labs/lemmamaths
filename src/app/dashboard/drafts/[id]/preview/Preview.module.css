@@ -1,19 +1,53 @@
 .page {
-  padding-block: var(--space-5) var(--space-9);
+  padding-block: var(--space-7) var(--space-9);
 }
 
 .toolbar {
   display: flex;
-  gap: var(--space-4);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
   margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--rule-hairline);
 }
 
 .link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.linkBack svg {
+  transform: rotate(180deg);
+}
+
+/* Pushes the state of the article to the right-hand end of the toolbar, so the
+   preview always says what it is a preview of. */
+.state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: 0 0 0 auto;
   font-family: var(--font-ui);
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
 
-.link:hover {
-  color: var(--accent);
+.hint {
+  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-6);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  line-height: var(--leading-ui);
+  color: var(--text-muted);
 }

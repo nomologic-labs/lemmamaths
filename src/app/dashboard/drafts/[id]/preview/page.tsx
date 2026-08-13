@@ -4,14 +4,20 @@ import { notFound, redirect } from "next/navigation";
 import { ArticleBody } from "@/components/articles/ArticleBody";
 import { ArticleHeader } from "@/components/articles/ArticleHeader";
 import { Container } from "@/components/ui/Container";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { ArrowRightIcon } from "@/components/ui/icons";
 import { canEditArticleRecord, canReadArticle } from "@/lib/articles/access";
+import {
+  WORKFLOW_CONTRIBUTOR_HINTS,
+  WORKFLOW_LABELS,
+} from "@/lib/articles/workflow-labels";
 import { getArticleById, getAuthorDisplays, toAccessRecord } from "@/lib/articles/store";
 import type { Article } from "@/data/types";
 import { getAuthenticatedUser } from "@/lib/auth/guards";
 import styles from "./Preview.module.css";
 
 export const metadata: Metadata = {
-  title: "Draft preview",
+  title: "Preview",
   robots: { index: false },
 };
 
@@ -26,12 +32,12 @@ export default async function DraftPreviewPage({ params }: PageProps) {
   if (!user.handle) redirect(`/onboarding/handle?callbackUrl=/dashboard/drafts/${id}/preview`);
 
   const article = await getArticleById(id);
-  if (!article || !canReadArticle(user.roles, user.id, toAccessRecord(article))) {
+  if (!article || !canReadArticle(user.permissions, user.id, toAccessRecord(article))) {
     notFound();
   }
 
   const authorOverrides = await getAuthorDisplays(article.authorUserIds);
-  const editable = canEditArticleRecord(user.roles, user.id, toAccessRecord(article));
+  const editable = canEditArticleRecord(user.permissions, user.id, toAccessRecord(article));
 
   const previewArticle: Article = {
     slug: article.slug,
@@ -44,23 +50,42 @@ export default async function DraftPreviewPage({ params }: PageProps) {
     tags: article.tags,
     format: article.format,
     readingMinutes: article.readingMinutes,
-    review: { status: "under-review" },
+    review: { status: article.peerReviewStatus },
     featured: article.featured,
     body: article.body,
   };
 
+  const published = article.workflowStatus === "PUBLISHED";
+
   return (
     <Container className={styles.page}>
       <header className={styles.toolbar}>
-        <Link href="/dashboard/drafts" className={styles.link}>
-          ← Drafts
+        <Link
+          href={published ? "/dashboard/published" : "/dashboard/drafts"}
+          className={`${styles.link} ${styles.linkBack}`}
+        >
+          <ArrowRightIcon size={16} />
+          {published ? "Published" : "My drafts"}
         </Link>
         {editable && (
           <Link href={`/dashboard/drafts/${id}`} className={styles.link}>
             Edit
           </Link>
         )}
+        {published && (
+          <Link href={`/articles/${article.slug}`} className={styles.link}>
+            Read in the archive
+          </Link>
+        )}
+        <span className={styles.state}>
+          <StatusPill tone="accent">{WORKFLOW_LABELS[article.workflowStatus]}</StatusPill>
+        </span>
       </header>
+
+      <p className={styles.hint}>
+        This is how the article will look when it is published.{" "}
+        {WORKFLOW_CONTRIBUTOR_HINTS[article.workflowStatus]}
+      </p>
 
       <article>
         <ArticleHeader article={previewArticle} authorOverrides={authorOverrides} />

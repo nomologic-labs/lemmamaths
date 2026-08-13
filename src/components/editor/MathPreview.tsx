@@ -7,7 +7,7 @@ import "katex/dist/katex.min.css";
 
 const OPTIONS: katex.KatexOptions = {
   throwOnError: false,
-  errorColor: "#b3261e",
+  errorColor: "var(--danger)",
   trust: false,
   strict: false,
   output: "html",

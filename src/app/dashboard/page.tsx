@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { StatusPill } from "@/components/ui/StatusPill";
 import {
   ArrowRightIcon,
   DashboardIcon,
@@ -10,102 +11,107 @@ import {
   InReviewIcon,
   ReviewedIcon,
 } from "@/components/ui/icons";
+import { ACCOUNT_ROLE_LABELS } from "@/lib/auth/account-labels";
 import { getAuthenticatedUser } from "@/lib/auth/guards";
+import { getMissingAuthEnvVars } from "@/lib/auth/env";
 import { canAccessDashboard } from "@/lib/auth/nav-links";
 import { signInWithGoogle } from "@/lib/auth/sign-in";
 import styles from "./Dashboard.module.css";
 
 export const metadata: Metadata = {
-  title: "Author dashboard",
-  description: "A preview of the authoring and review tools planned for Lemma.",
+  title: "Contributor dashboard",
+  description: "Write, submit and review Lemma articles.",
   robots: { index: false },
 };
 
+/** Shown to signed-out visitors: what an approved account can do. */
 const PREVIEW_PANELS = [
   {
     Icon: DashboardIcon,
-    title: "Drafts",
-    body: "Work in progress, with the structured editor that produces an article's blocks directly rather than asking students to write markup.",
-    phase: "Later phase",
-  },
-  {
-    Icon: InReviewIcon,
-    title: "Submissions",
-    body: "What you have sent to the editors, where it is in the review process, and what a referee has asked you to change.",
-    phase: "Later phase",
+    title: "My drafts",
+    body: "Work in progress, written in a structured editor that produces an article's blocks directly rather than asking you to write markup.",
   },
   {
     Icon: EditorialIcon,
-    title: "Refereeing",
-    body: "Drafts assigned to you to read, with comments addressed to individual blocks of an article rather than to the piece as a whole.",
-    phase: "Later phase",
+    title: "Peer review",
+    body: "Articles assigned to you to read, with comments addressed to individual blocks of an article rather than to the piece as a whole.",
   },
   {
     Icon: ReviewedIcon,
     title: "Published",
-    body: "Your articles in the archive, their revision history, and the record of who refereed each one.",
-    phase: "Later phase",
+    body: "Your articles once an administrator has published them to the archive, where anyone can read them.",
   },
 ] as const;
 
 export default async function DashboardPage() {
   const user = await getAuthenticatedUser();
+  const missingAuthEnvVars = getMissingAuthEnvVars();
 
   if (!user) {
     return (
       <>
         <PageHeader
           eyebrow="Contribute"
-          title="Author dashboard"
-          lede="Where writing, submitting and refereeing will happen once Lemma has accounts."
+          title="Contributor dashboard"
+          lede="Where writing, peer review and publication happen."
         />
         <Container className={styles.page}>
           <p className={styles.notice}>
-            <span className={styles.noticeTag}>Preview</span>
+            <span className={styles.noticeTag}>Sign in</span>
             <span>
-              Nothing on this page is connected yet. Authentication, article storage and the
-              review workflow are separate pieces of work, and this prototype deliberately
-              implements none of them.
+              Lemma is in beta. Sign in to create an account, then an administrator approves it
+              before you can start writing.
             </span>
           </p>
 
           <p className={styles.intro}>
-            Lemma currently runs on conversations with the editorial team: an author brings a
-            proposal, a draft is written, someone referees it, and an editor publishes it.
-            The dashboard is where each of those steps will move once there is somewhere for
-            an account to live. The sections below are the shape it is being built towards.
+            An article goes one way through Lemma. You write a draft, submit it for peer review,
+            another contributor reads it and comments, you revise and resubmit if they ask for
+            changes, and an administrator approves and publishes the finished article to the
+            archive.
           </p>
 
           <div className={styles.signInCard}>
             <p className={styles.signInIntro}>
-              Lemma contributors sign in with a personal Google account. Your school does not
-              need to manage access.
+              Contributors sign in with a personal Google account. Your school does not need to
+              manage access.
             </p>
+            {missingAuthEnvVars.length > 0 ? (
+              <p className={styles.signInNote}>
+                Authentication is not configured on this environment yet. Set{" "}
+                <code>{missingAuthEnvVars.join(", ")}</code> in <code>.env.local</code>, or use
+                the <Link href="/login">sign-in page</Link> for setup instructions.
+              </p>
+            ) : null}
             <form
               action={async () => {
                 "use server";
                 await signInWithGoogle("/dashboard");
               }}
             >
-              <button type="submit" className={styles.googleButton}>
+              <button
+                type="submit"
+                className={styles.googleButton}
+                disabled={missingAuthEnvVars.length > 0}
+              >
                 Sign in with Google
               </button>
             </form>
             <p className={styles.signInNote}>
-              Signing in does not automatically make you an author. Editorial roles are granted
-              separately once your account exists.
+              Signing in creates a contributor account with the status Pending. An administrator
+              approves it before writing and review become available.
             </p>
           </div>
 
           <div className={styles.panels}>
-            {PREVIEW_PANELS.map(({ Icon, title, body, phase }) => (
+            {PREVIEW_PANELS.map(({ Icon, title, body }) => (
               <section key={title} className={styles.panel}>
                 <div className={styles.panelHead}>
                   <Icon size={18} />
                   <h2 className={styles.panelTitle}>{title}</h2>
                 </div>
                 <p className={styles.panelBody}>{body}</p>
-                <span className={styles.phase}>{phase}</span>
+                <StatusPill className={styles.phase}>After approval</StatusPill>
               </section>
             ))}
           </div>
@@ -123,26 +129,24 @@ export default async function DashboardPage() {
     redirect("/onboarding/handle?callbackUrl=/dashboard");
   }
 
-  if (!canAccessDashboard(user.roles)) {
+  if (user.accountStatus === "suspended") {
     return (
       <>
         <PageHeader
           eyebrow="Contribute"
-          title="Contributor dashboard"
-          lede={`Signed in as @${user.handle}. Your Lemma account exists, but no contributor role has been assigned yet.`}
+          title="Account suspended"
+          lede={`Signed in as @${user.handle}. Your Lemma account has been suspended.`}
         />
         <Container className={styles.page}>
           <p className={styles.notice}>
-            <span className={styles.noticeTag}>Awaiting access</span>
+            <span className={styles.noticeTag}>Suspended</span>
             <span>
-              Authentication is complete and your handle is set. An editor or administrator must
-              grant you a contributor role before drafting, review, or editorial tools become
-              available.
+              Your account is suspended. Writing and peer review are unavailable until a Lemma
+              administrator restores it. Your drafts are kept.
             </span>
           </p>
           <p className={styles.intro}>
-            If you expected access already, contact the Lemma editorial team. Signing in with
-            Google does not automatically make you an author.
+            If you believe this is a mistake, contact a Lemma administrator.
           </p>
           <Link href="/about#writing" className={styles.back}>
             How writing for Lemma works today
@@ -153,38 +157,75 @@ export default async function DashboardPage() {
     );
   }
 
+  if (user.accountStatus === "pending") {
+    return (
+      <>
+        <PageHeader
+          eyebrow="Contribute"
+          title="Contributor dashboard"
+          lede={`Signed in as @${user.handle}. Your account is awaiting approval.`}
+        />
+        <Container className={styles.page}>
+          <p className={styles.notice}>
+            <span className={styles.noticeTag}>Pending</span>
+            <span>
+              Your account is waiting for a Lemma administrator to approve it. You can set your
+              handle now; writing and peer review become available once it is approved.
+            </span>
+          </p>
+          <p className={styles.intro}>
+            If you expected access already, contact a Lemma administrator.
+          </p>
+          <Link href="/about#writing" className={styles.back}>
+            How writing for Lemma works today
+            <ArrowRightIcon size={16} />
+          </Link>
+        </Container>
+      </>
+    );
+  }
+
+  if (!canAccessDashboard(user.permissions)) {
+    redirect("/dashboard");
+  }
+
+  const roleLabel = ACCOUNT_ROLE_LABELS[user.accountRole];
+
   const panels = [
     {
       Icon: DashboardIcon,
-      title: "Drafts",
-      body: "Work in progress in the structured editor that produces an article's blocks directly.",
-      phase: "Available",
-      href: "/dashboard/drafts" as string | undefined,
+      title: "My drafts",
+      body: "Articles you are writing, and articles you have sent for peer review.",
+      href: "/dashboard/drafts",
       show: user.permissions.has("article:create"),
     },
     {
-      Icon: InReviewIcon,
-      title: "Submissions",
-      body: "Editorial queue for submitted manuscripts, reviewer assignment, and decisions.",
-      phase: "Available",
-      href: "/dashboard/review",
-      show: user.permissions.has("article:approve"),
-    },
-    {
       Icon: EditorialIcon,
-      title: "Refereeing",
-      body: "Articles assigned to you, with comments addressed to individual block ids.",
-      phase: "Available",
+      title: "Peer review",
+      body: "Articles assigned to you to read, where you comment on individual blocks and send a recommendation.",
       href: "/dashboard/review/assigned",
       show: user.permissions.has("article:review"),
     },
     {
       Icon: ReviewedIcon,
       title: "Published",
-      body: "Your articles in the archive, their revision history, and the record of who refereed each one.",
-      phase: "Later phase",
-      href: undefined,
-      show: true,
+      body: "Your articles in the public archive, once an administrator has published them.",
+      href: "/dashboard/published",
+      show: user.permissions.has("article:create"),
+    },
+    {
+      Icon: InReviewIcon,
+      title: "Editorial review",
+      body: "Assign reviewers, request revisions, approve articles, and publish them to the archive.",
+      href: "/dashboard/review",
+      show: user.permissions.has("article:approve"),
+    },
+    {
+      Icon: EditorialIcon,
+      title: "Accounts",
+      body: "Approve contributor accounts, suspend or restore them, and edit names and handles.",
+      href: "/dashboard/admin/users",
+      show: user.permissions.has("account:manage"),
     },
   ].filter((panel) => panel.show);
 
@@ -192,41 +233,41 @@ export default async function DashboardPage() {
     <>
       <PageHeader
         eyebrow="Contribute"
-        title="Contributor dashboard"
-        lede={`Signed in as @${user.handle} with ${user.roles.join(", ")} access.`}
+        title={user.accountRole === "administrator" ? "Administrator dashboard" : "Contributor dashboard"}
+        lede={`Signed in as @${user.handle} with ${roleLabel} access.`}
       />
       <Container className={styles.page}>
         <p className={styles.notice}>
-          <span className={styles.noticeTag}>Authorized</span>
+          <span className={styles.noticeTag}>Active</span>
           <span>
-            Drafting, submission, and block-level review tools are available according to your
-            roles. Publishing to the public archive remains a later phase.
+            Your account is approved. Everything below is available to you now.
           </span>
         </p>
 
         <p className={styles.intro}>
-          Use <Link href="/dashboard/drafts">My drafts</Link> to write. Editors manage the{" "}
-          <Link href="/dashboard/review">review queue</Link>; referees open{" "}
-          <Link href="/dashboard/review/assigned">assigned reviews</Link>.
+          Write in <Link href="/dashboard/drafts">My drafts</Link> and submit an article for peer
+          review when it is ready. Another contributor reads it and comments; if they ask for
+          changes, revise the draft and resubmit it. An administrator approves the finished
+          article and publishes it, after which it appears in{" "}
+          <Link href="/dashboard/published">Published</Link> and in the public archive.
         </p>
 
         <div className={styles.panels}>
-          {panels.map(({ Icon, title, body, phase, href }) => (
+          {panels.map(({ Icon, title, body, href }) => (
             <section key={title} className={styles.panel}>
               <div className={styles.panelHead}>
                 <Icon size={18} />
                 <h2 className={styles.panelTitle}>
-                  {href ? <Link href={href}>{title}</Link> : title}
+                  <Link href={href}>{title}</Link>
                 </h2>
               </div>
               <p className={styles.panelBody}>{body}</p>
-              <span className={styles.phase}>{phase}</span>
             </section>
           ))}
         </div>
 
         <Link href="/about#writing" className={styles.back}>
-          How writing for Lemma works today
+          How writing for Lemma works
           <ArrowRightIcon size={16} />
         </Link>
       </Container>

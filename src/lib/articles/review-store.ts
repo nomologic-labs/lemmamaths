@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   articleAuthors,
@@ -9,7 +9,7 @@ import {
   articleReviewers,
   articles,
 } from "@/lib/db/articles-schema";
-import { userRoles, users } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import type { ArticleWorkflowStatus } from "./workflow";
 import type { ReviewDecision } from "./review-access";
 
@@ -368,11 +368,9 @@ export async function listEligibleReviewers(): Promise<
       id: users.id,
       handle: users.handle,
       name: users.name,
-      role: userRoles.role,
     })
     .from(users)
-    .innerJoin(userRoles, eq(userRoles.userId, users.id))
-    .where(inArray(userRoles.role, ["reviewer", "editor", "admin"]));
+    .where(and(isNotNull(users.handle), eq(users.accountStatus, "active")));
 
   const byId = new Map<string, { id: string; handle: string; name: string | null }>();
   for (const row of rows) {
